@@ -1,6 +1,4 @@
-//go:build !wasm
-
-package image
+package min
 
 import (
 	"bytes"
@@ -10,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/tinywasm/image"
 )
 
 func (h *Handler) listModulesReal(rootDir string) ([]string, error) {
@@ -36,6 +36,7 @@ func (h *Handler) listModulesReal(rootDir string) ([]string, error) {
 	}
 	return dirs, nil
 }
+
 func (h *Handler) InitDefaultLoader() {
 	h.listModulesFn = h.listModulesReal
 }
@@ -86,6 +87,7 @@ func (h *Handler) ReloadModule(moduleDir string) error {
 	}
 	return nil
 }
+
 func (h *Handler) processAsset(asset ParsedAsset) error {
 	if IsUpToDate(asset.AbsPath, asset.Variants, h.config.OutputDir) {
 		return nil
@@ -96,6 +98,7 @@ func (h *Handler) processAsset(asset ParsedAsset) error {
 	_, err := ProcessImage(asset, h.config.OutputDir, h.config.Quality, h.log)
 	return err
 }
+
 func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 	if h.config.OutputDir == "" {
 		return
@@ -103,12 +106,12 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 	activeFiles := make(map[string]bool)
 	for _, asset := range allAssets {
 		variantInfos := []struct {
-			v Variant
+			v image.Variant
 			s string
 		}{
-			{VariantS, "S"},
-			{VariantM, "M"},
-			{VariantL, "L"},
+			{image.VariantS, "S"},
+			{image.VariantM, "M"},
+			{image.VariantL, "L"},
 		}
 		for _, vi := range variantInfos {
 			if asset.Variants&vi.v != 0 {

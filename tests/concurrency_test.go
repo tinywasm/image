@@ -10,7 +10,7 @@ import (
 func TestReloadConcurrency(t *testing.T) {
 	env := newTestEnv(t)
 	env.copyTestImage("img/logo.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]image.Asset{
+	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS},
 	})
 
@@ -35,7 +35,7 @@ func TestReloadConcurrency(t *testing.T) {
 func TestLoadAndReloadConcurrent(t *testing.T) {
 	env := newTestEnv(t)
 	env.copyTestImage("img/logo.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]image.Asset{
+	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS},
 	})
 
