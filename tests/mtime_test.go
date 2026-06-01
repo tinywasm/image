@@ -1,4 +1,4 @@
-package imagemin_test
+package image_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image"
 )
 
 func TestMtimeSkipsUnchanged(t *testing.T) {
@@ -14,8 +14,8 @@ func TestMtimeSkipsUnchanged(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/logo.png", Variants: imagemin.VariantS, Alt: "Logo"},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/logo.png", Variants: image.VariantS, Alt: "Logo"},
 	})
 
 	err := env.Handler.LoadImages()
@@ -50,8 +50,8 @@ func TestMtimeReprocessesOnChange(t *testing.T) {
 	srcPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(srcPath), 0755)
 	createTestImage(srcPath, 100, 100)
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/logo.png", Variants: imagemin.VariantS, Alt: "Logo"},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/logo.png", Variants: image.VariantS, Alt: "Logo"},
 	})
 
 	err := env.Handler.LoadImages()
@@ -93,8 +93,8 @@ func TestMtimeMissingVariant(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/logo.png", Variants: imagemin.VariantS | imagemin.VariantM, Alt: "Logo"},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/logo.png", Variants: image.VariantS | image.VariantM, Alt: "Logo"},
 	})
 
 	err := env.Handler.LoadImages()
@@ -102,8 +102,8 @@ func TestMtimeMissingVariant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env.assertWebPExists("logo", imagemin.VariantS)
-	env.assertWebPExists("logo", imagemin.VariantM)
+	env.assertWebPExists("logo", image.VariantS)
+	env.assertWebPExists("logo", image.VariantM)
 
 	// Delete one variant
 	err = os.Remove(filepath.Join(env.OutputDir, "logo.M.webp"))
@@ -117,5 +117,5 @@ func TestMtimeMissingVariant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env.assertWebPExists("logo", imagemin.VariantM)
+	env.assertWebPExists("logo", image.VariantM)
 }

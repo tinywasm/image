@@ -1,11 +1,11 @@
-package imagemin_test
+package image_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image"
 )
 
 func TestConvertJPGToWebP(t *testing.T) {
@@ -14,19 +14,19 @@ func TestConvertJPGToWebP(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 200, 100)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantL,
+		Variants: image.VariantL,
 		Alt:      "Test",
 		BaseName: "test",
 	}
 
-	_, err := imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	env.assertWebPExists("test", imagemin.VariantL)
+	env.assertWebPExists("test", image.VariantL)
 }
 
 func TestConvertNoUpscale(t *testing.T) {
@@ -35,15 +35,15 @@ func TestConvertNoUpscale(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantL,
+		Variants: image.VariantL,
 		Alt:      "Small",
 		BaseName: "small",
 	}
 
 	skipped := false
-	_, err := imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {
+	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {
 		for _, msg := range m {
 			if msg == "image smaller than target, skipping resize" {
 				skipped = true
@@ -57,7 +57,7 @@ func TestConvertNoUpscale(t *testing.T) {
 	if !skipped {
 		t.Error("expected resize to be skipped for small image")
 	}
-	env.assertWebPExists("small", imagemin.VariantL)
+	env.assertWebPExists("small", image.VariantL)
 }
 
 func TestConvertVariantSubset(t *testing.T) {
@@ -66,21 +66,21 @@ func TestConvertVariantSubset(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 200, 100)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantS | imagemin.VariantM,
+		Variants: image.VariantS | image.VariantM,
 		Alt:      "Multi",
 		BaseName: "multi",
 	}
 
-	_, err := imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	env.assertWebPExists("multi", imagemin.VariantS)
-	env.assertWebPExists("multi", imagemin.VariantM)
-	env.assertWebPNotExists("multi", imagemin.VariantL)
+	env.assertWebPExists("multi", image.VariantS)
+	env.assertWebPExists("multi", image.VariantM)
+	env.assertWebPNotExists("multi", image.VariantL)
 }
 
 func TestConvertOutputNaming(t *testing.T) {
@@ -89,13 +89,13 @@ func TestConvertOutputNaming(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantS,
+		Variants: image.VariantS,
 		BaseName: "my-custom-name",
 	}
 
-	imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 
 	expected := filepath.Join(env.OutputDir, "my-custom-name.S.webp")
 	if _, err := os.Stat(expected); os.IsNotExist(err) {
@@ -110,16 +110,16 @@ func TestConvertAltDerivedFromFilename(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	assets, _ := imagemin.ExtractImages(env.ModuleDir)
+	assets, _ := image.ExtractImages(env.ModuleDir)
 	// We need writeSSRGo for ExtractImages to work in this env
 	env.writeSSRGo(`
 package m
-import "github.com/tinywasm/imagemin"
-func RenderImages() []imagemin.Asset {
-	return []imagemin.Asset{{Path: "img/my-hero.jpg", Variants: imagemin.VariantS}}
+import "github.com/tinywasm/image"
+func RenderImages() []image.Asset {
+	return []image.Asset{{Path: "img/my-hero.jpg", Variants: image.VariantS}}
 }
 `)
-	assets, _ = imagemin.ExtractImages(env.ModuleDir)
+	assets, _ = image.ExtractImages(env.ModuleDir)
 	if assets[0].Alt != "my hero" {
 		t.Errorf("expected alt 'my hero', got %q", assets[0].Alt)
 	}
@@ -134,31 +134,31 @@ func TestConvertOutputDirCreated(t *testing.T) {
 	createTestImage(imgPath, 100, 100)
 
 	// We need to ensure LoadImages or ReloadModule creates it, or ProcessImage
-	// Actually, let's see where it's created. 
+	// Actually, let's see where it's created.
 	// ProcessImage calls writeWebP which calls os.Create. os.Create doesn't create directories.
 	// ReloadModule should probably create it.
-	
+
 	err := env.Handler.ReloadModule(env.ModuleDir)
 	// Wait, we need to set OutputDir in config
-	env.Handler = imagemin.New(&imagemin.Config{
-		RootDir: env.ModuleDir,
+	env.Handler = image.New(&image.Config{
+		RootDir:   env.ModuleDir,
 		OutputDir: newOutputDir,
-		Quality: 82,
+		Quality:   82,
 	})
 	env.Handler.SetListModulesFn(func(rootDir string) ([]string, error) {
 		return []string{env.ModuleDir}, nil
 	})
-	
-	env.writeSSRGoWithImages([]imagemin.Asset{{Path: "test.jpg", Variants: imagemin.VariantS}})
-	
+
+	env.writeSSRGoWithImages([]image.Asset{{Path: "test.jpg", Variants: image.VariantS}})
+
 	// We need to make sure the directory is created.
 	// Let's modify ReloadModule to create the output dir if it doesn't exist.
-	
+
 	err = env.Handler.ReloadModule(env.ModuleDir)
 	if err != nil {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
-	
+
 	if _, err := os.Stat(newOutputDir); os.IsNotExist(err) {
 		t.Error("expected OutputDir to be created automatically")
 	}
@@ -169,18 +169,18 @@ func TestConvertPNGTransparency(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "transparent.png")
 	createTestPNG(imgPath, 100, 100, true)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantS,
+		Variants: image.VariantS,
 		BaseName: "transparent",
 	}
 
-	_, err := imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	env.assertWebPExists("transparent", imagemin.VariantS)
+	env.assertWebPExists("transparent", image.VariantS)
 }
 
 func TestConvertQualityRange(t *testing.T) {
@@ -188,15 +188,15 @@ func TestConvertQualityRange(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "quality.jpg")
 	createTestImage(imgPath, 500, 500)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantS,
+		Variants: image.VariantS,
 		BaseName: "quality",
 	}
 
 	// Just verify it doesn't error with different qualities
 	for _, q := range []int{50, 82} {
-		_, err := imagemin.ProcessImage(asset, env.OutputDir, q, func(m ...any) {})
+		_, err := image.ProcessImage(asset, env.OutputDir, q, func(m ...any) {})
 		if err != nil {
 			t.Errorf("ProcessImage failed for quality %d: %v", q, err)
 		}
@@ -208,13 +208,13 @@ func TestConvertCorruptImage(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "corrupt.jpg")
 	os.WriteFile(imgPath, []byte("not an image"), 0644)
 
-	asset := imagemin.ParsedAsset{
+	asset := image.ParsedAsset{
 		AbsPath:  imgPath,
-		Variants: imagemin.VariantS,
+		Variants: image.VariantS,
 		BaseName: "corrupt",
 	}
 
-	_, err := imagemin.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err == nil {
 		t.Error("expected error for corrupt image")
 	}

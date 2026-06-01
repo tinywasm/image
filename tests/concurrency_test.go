@@ -1,17 +1,17 @@
-package imagemin_test
+package image_test
 
 import (
 	"sync"
 	"testing"
 
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image"
 )
 
 func TestReloadConcurrency(t *testing.T) {
 	env := newTestEnv(t)
 	env.copyTestImage("img/logo.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/logo.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/logo.png", Variants: image.VariantS},
 	})
 
 	const goroutines = 5
@@ -29,14 +29,14 @@ func TestReloadConcurrency(t *testing.T) {
 	}
 
 	wg.Wait()
-	env.assertWebPExists("logo", imagemin.VariantS)
+	env.assertWebPExists("logo", image.VariantS)
 }
 
 func TestLoadAndReloadConcurrent(t *testing.T) {
 	env := newTestEnv(t)
 	env.copyTestImage("img/logo.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/logo.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/logo.png", Variants: image.VariantS},
 	})
 
 	var wg sync.WaitGroup

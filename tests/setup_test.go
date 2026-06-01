@@ -1,8 +1,8 @@
-package imagemin_test
+package image_test
 
 import (
 	"fmt"
-	"image"
+	stdimage "image"
 	"image/color"
 	"image/jpeg"
 	"image/png"
@@ -10,27 +10,27 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image"
 )
 
 type TestEnv struct {
 	t         *testing.T
 	ModuleDir string
 	OutputDir string
-	Handler   *imagemin.Handler
+	Handler   *image.Handler
 }
 
 func newTestEnv(t *testing.T) *TestEnv {
 	moduleDir := t.TempDir()
 	outputDir := t.TempDir()
 
-	config := &imagemin.Config{
+	config := &image.Config{
 		RootDir:   moduleDir,
 		OutputDir: outputDir,
 		Quality:   82,
 	}
 
-	handler := imagemin.New(config)
+	handler := image.New(config)
 	handler.SetListModulesFn(func(rootDir string) ([]string, error) {
 		return []string{moduleDir}, nil
 	})
@@ -50,10 +50,10 @@ func (e *TestEnv) writeSSRGo(content string) {
 	}
 }
 
-func (e *TestEnv) writeSSRGoWithImages(assets []imagemin.Asset) {
-	content := "//go:build !wasm\n\npackage module\n\nimport \"github.com/tinywasm/imagemin\"\n\nfunc RenderImages() []imagemin.Asset {\n\treturn []imagemin.Asset{\n"
+func (e *TestEnv) writeSSRGoWithImages(assets []image.Asset) {
+	content := "//go:build !wasm\n\npackage module\n\nimport \"github.com/tinywasm/image\"\n\nfunc RenderImages() []image.Asset {\n\treturn []image.Asset{\n"
 	for _, asset := range assets {
-		content += fmt.Sprintf("\t\t{Path: %q, Variants: imagemin.Variant(%d), Alt: %q},\n", asset.Path, asset.Variants, asset.Alt)
+		content += fmt.Sprintf("\t\t{Path: %q, Variants: image.Variant(%d), Alt: %q},\n", asset.Path, asset.Variants, asset.Alt)
 	}
 	content += "\t}\n}\n"
 	e.writeSSRGo(content)
@@ -83,27 +83,27 @@ func (e *TestEnv) copyTestImage(destRelPath, testdataFile string) {
 	}
 }
 
-func (e *TestEnv) assertWebPExists(name string, v imagemin.Variant) {
+func (e *TestEnv) assertWebPExists(name string, v image.Variant) {
 	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, variantName(v)))
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		e.t.Errorf("expected WebP variant %s for %s to exist", variantName(v), name)
 	}
 }
 
-func (e *TestEnv) assertWebPNotExists(name string, v imagemin.Variant) {
+func (e *TestEnv) assertWebPNotExists(name string, v image.Variant) {
 	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, variantName(v)))
 	if _, err := os.Stat(path); err == nil {
 		e.t.Errorf("expected WebP variant %s for %s NOT to exist", variantName(v), name)
 	}
 }
 
-func variantName(v imagemin.Variant) string {
+func variantName(v image.Variant) string {
 	switch v {
-	case imagemin.VariantS:
+	case image.VariantS:
 		return "S"
-	case imagemin.VariantM:
+	case image.VariantM:
 		return "M"
-	case imagemin.VariantL:
+	case image.VariantL:
 		return "L"
 	default:
 		return "unknown"
@@ -111,7 +111,7 @@ func variantName(v imagemin.Variant) string {
 }
 
 func createTestImage(path string, width, height int) error {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	img := stdimage.NewRGBA(stdimage.Rect(0, 0, width, height))
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
 			img.Set(x, y, color.RGBA{uint8(x % 256), uint8(y % 256), 0, 255})
@@ -126,7 +126,7 @@ func createTestImage(path string, width, height int) error {
 }
 
 func createTestPNG(path string, width, height int, alpha bool) error {
-	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	img := stdimage.NewRGBA(stdimage.Rect(0, 0, width, height))
 	a := uint8(255)
 	if alpha {
 		a = 128
