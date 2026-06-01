@@ -1,11 +1,11 @@
-package imagemin_test
+package image_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/tinywasm/imagemin"
+	"github.com/tinywasm/image"
 )
 
 func TestLoadImagesFromModule(t *testing.T) {
@@ -14,8 +14,8 @@ func TestLoadImagesFromModule(t *testing.T) {
 	imgPath := "img/logo.png"
 	env.copyTestImage(imgPath, "gopher.S.png")
 
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: imgPath, Variants: imagemin.VariantS, Alt: "Gopher"},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: imgPath, Variants: image.VariantS, Alt: "Gopher"},
 	})
 
 	err := env.Handler.LoadImages()
@@ -23,23 +23,23 @@ func TestLoadImagesFromModule(t *testing.T) {
 		t.Fatalf("LoadImages failed: %v", err)
 	}
 
-	env.assertWebPExists("logo", imagemin.VariantS)
+	env.assertWebPExists("logo", image.VariantS)
 }
 
 func TestReloadModuleNewImage(t *testing.T) {
 	env := newTestEnv(t)
 
 	env.copyTestImage("img/one.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/one.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/one.png", Variants: image.VariantS},
 	})
 	env.Handler.ReloadModule(env.ModuleDir)
-	env.assertWebPExists("one", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
 
 	env.copyTestImage("img/two.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/one.png", Variants: imagemin.VariantS},
-		{Path: "img/two.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/one.png", Variants: image.VariantS},
+		{Path: "img/two.png", Variants: image.VariantS},
 	})
 
 	err := env.Handler.ReloadModule(env.ModuleDir)
@@ -47,8 +47,8 @@ func TestReloadModuleNewImage(t *testing.T) {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
 
-	env.assertWebPExists("one", imagemin.VariantS)
-	env.assertWebPExists("two", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
+	env.assertWebPExists("two", image.VariantS)
 }
 
 func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
@@ -56,16 +56,16 @@ func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 
 	env.copyTestImage("img/one.png", "gopher.S.png")
 	env.copyTestImage("img/two.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/one.png", Variants: imagemin.VariantS},
-		{Path: "img/two.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/one.png", Variants: image.VariantS},
+		{Path: "img/two.png", Variants: image.VariantS},
 	})
 	env.Handler.ReloadModule(env.ModuleDir)
-	env.assertWebPExists("one", imagemin.VariantS)
-	env.assertWebPExists("two", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
+	env.assertWebPExists("two", image.VariantS)
 
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/one.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/one.png", Variants: image.VariantS},
 	})
 
 	err := env.Handler.ReloadModule(env.ModuleDir)
@@ -73,22 +73,22 @@ func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
 
-	env.assertWebPExists("one", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
 	// ReloadModule no longer cleans orphans (global cleanup only in LoadImages)
-	env.assertWebPExists("two", imagemin.VariantS)
+	env.assertWebPExists("two", image.VariantS)
 }
 
 func TestGlobalOrphanCleanup(t *testing.T) {
 	env := newTestEnv(t)
 
 	env.copyTestImage("img/one.png", "gopher.S.png")
-	env.writeSSRGoWithImages([]imagemin.Asset{
-		{Path: "img/one.png", Variants: imagemin.VariantS},
+	env.writeSSRGoWithImages([]image.Asset{
+		{Path: "img/one.png", Variants: image.VariantS},
 	})
 
 	// Initial load
 	env.Handler.LoadImages()
-	env.assertWebPExists("one", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
 
 	// Add an orphan manually
 	orphanPath := filepath.Join(env.OutputDir, "orphan.S.webp")
@@ -99,12 +99,12 @@ func TestGlobalOrphanCleanup(t *testing.T) {
 	if _, err := os.Stat(orphanPath); err == nil {
 		t.Error("expected orphan to be removed")
 	}
-	env.assertWebPExists("one", imagemin.VariantS)
+	env.assertWebPExists("one", image.VariantS)
 
 	// Remove image from SSR and load again
-	env.writeSSRGoWithImages([]imagemin.Asset{})
+	env.writeSSRGoWithImages([]image.Asset{})
 	env.Handler.LoadImages()
-	env.assertWebPNotExists("one", imagemin.VariantS)
+	env.assertWebPNotExists("one", image.VariantS)
 }
 
 func TestLoadImagesGoListFails(t *testing.T) {
@@ -121,7 +121,7 @@ func TestLoadImagesGoListFails(t *testing.T) {
 
 func TestLoadImagesRootDirEmpty(t *testing.T) {
 	env := newTestEnv(t)
-	env.Handler = imagemin.New(&imagemin.Config{
+	env.Handler = image.New(&image.Config{
 		RootDir:   "",
 		OutputDir: env.OutputDir,
 	})

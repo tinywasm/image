@@ -1,3 +1,12 @@
-module github.com/cdvelop/image
+module github.com/tinywasm/image
 
 go 1.25.2
+
+require (
+	github.com/HugoSmits86/nativewebp v1.2.1
+	github.com/disintegration/imaging v1.6.2
+	github.com/tinywasm/dom v0.10.1
+	github.com/tinywasm/fmt v0.23.10
+)
+
+require golang.org/x/image v0.24.0 // indirect
