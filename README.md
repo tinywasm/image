@@ -1,4 +1,5 @@
 # tinywasm/image
+<img src="docs/img/badges.svg">
 
 Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de optimización WebP.
 
