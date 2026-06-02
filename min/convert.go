@@ -1,15 +1,16 @@
-//go:build !wasm
-
-package image
+package min
 
 import (
 	"fmt"
-	"github.com/HugoSmits86/nativewebp"
-	"github.com/disintegration/imaging"
-	stdimage "image"
 	"os"
 	"path/filepath"
 	"strings"
+
+	stdimage "image"
+
+	"github.com/HugoSmits86/nativewebp"
+	"github.com/disintegration/imaging"
+	"github.com/tinywasm/image"
 )
 
 func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...any)) ([]string, error) {
@@ -20,12 +21,12 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 	bounds := img.Bounds()
 	originalWidth := bounds.Dx()
 	variants := []struct {
-		v     Variant
+		v     image.Variant
 		width int
 	}{
-		{VariantS, 640},
-		{VariantM, 1024},
-		{VariantL, 1920},
+		{image.VariantS, 640},
+		{image.VariantM, 1024},
+		{image.VariantL, 1920},
 	}
 	var outputFiles []string
 	for _, vInfo := range variants {
@@ -48,18 +49,20 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 	}
 	return outputFiles, nil
 }
-func variantSuffix(v Variant) string {
+
+func variantSuffix(v image.Variant) string {
 	switch v {
-	case VariantS:
+	case image.VariantS:
 		return "S"
-	case VariantM:
+	case image.VariantM:
 		return "M"
-	case VariantL:
+	case image.VariantL:
 		return "L"
 	default:
 		return "unknown"
 	}
 }
+
 func writeWebP(img stdimage.Image, path string, quality int) error {
 	f, err := os.Create(path)
 	if err != nil {
@@ -70,6 +73,7 @@ func writeWebP(img stdimage.Image, path string, quality int) error {
 	// The quality parameter is accepted for future compatibility but not currently used by the encoder.
 	return nativewebp.Encode(f, img, nil)
 }
+
 func deriveAlt(baseName string) string {
 	return strings.ReplaceAll(baseName, "-", " ")
 }

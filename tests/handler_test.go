@@ -3,12 +3,12 @@ package image_test
 import (
 	"testing"
 
-	"github.com/tinywasm/image"
+	"github.com/tinywasm/image/min"
 )
 
 func TestHandlerUnobservedFiles(t *testing.T) {
-	config := &image.Config{OutputDir: "web/public/img"}
-	handler := image.New(config)
+	config := &min.Config{OutputDir: "web/public/img"}
+	handler := min.New(config)
 	unobserved := handler.UnobservedFiles()
 
 	foundOutputDir := false

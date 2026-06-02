@@ -11,26 +11,27 @@ import (
 	"testing"
 
 	"github.com/tinywasm/image"
+	"github.com/tinywasm/image/min"
 )
 
 type TestEnv struct {
 	t         *testing.T
 	ModuleDir string
 	OutputDir string
-	Handler   *image.Handler
+	Handler   *min.Handler
 }
 
 func newTestEnv(t *testing.T) *TestEnv {
 	moduleDir := t.TempDir()
 	outputDir := t.TempDir()
 
-	config := &image.Config{
+	config := &min.Config{
 		RootDir:   moduleDir,
 		OutputDir: outputDir,
 		Quality:   82,
 	}
 
-	handler := image.New(config)
+	handler := min.New(config)
 	handler.SetListModulesFn(func(rootDir string) ([]string, error) {
 		return []string{moduleDir}, nil
 	})
@@ -43,20 +44,20 @@ func newTestEnv(t *testing.T) *TestEnv {
 	}
 }
 
-func (e *TestEnv) writeSSRGo(content string) {
-	err := os.WriteFile(filepath.Join(e.ModuleDir, "ssr.go"), []byte(content), 0644)
+func (e *TestEnv) writeImageGo(content string) {
+	err := os.WriteFile(filepath.Join(e.ModuleDir, "image.go"), []byte(content), 0644)
 	if err != nil {
-		e.t.Fatalf("failed to write ssr.go: %v", err)
+		e.t.Fatalf("failed to write image.go: %v", err)
 	}
 }
 
-func (e *TestEnv) writeSSRGoWithImages(assets []image.Asset) {
+func (e *TestEnv) writeImageGoWithImages(assets []image.Asset) {
 	content := "//go:build !wasm\n\npackage module\n\nimport \"github.com/tinywasm/image\"\n\nfunc RenderImages() []image.Asset {\n\treturn []image.Asset{\n"
 	for _, asset := range assets {
 		content += fmt.Sprintf("\t\t{Path: %q, Variants: image.Variant(%d), Alt: %q},\n", asset.Path, asset.Variants, asset.Alt)
 	}
 	content += "\t}\n}\n"
-	e.writeSSRGo(content)
+	e.writeImageGo(content)
 }
 
 func (e *TestEnv) copyTestImage(destRelPath, testdataFile string) {

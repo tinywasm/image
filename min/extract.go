@@ -1,6 +1,4 @@
-//go:build !wasm
-
-package image
+package min
 
 import (
 	"fmt"
@@ -10,12 +8,14 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/tinywasm/image"
 )
 
 func ExtractImages(moduleDir string) ([]ParsedAsset, error) {
-	ssrPath := filepath.Join(moduleDir, "ssr.go")
+	imagePath := filepath.Join(moduleDir, "image.go")
 	fset := token.NewFileSet()
-	node, err := parser.ParseFile(fset, ssrPath, nil, 0)
+	node, err := parser.ParseFile(fset, imagePath, nil, 0)
 	if err != nil {
 		return nil, nil
 	}
@@ -59,6 +59,7 @@ func ExtractImages(moduleDir string) ([]ParsedAsset, error) {
 	})
 	return assets, nil
 }
+
 func parseAssetSlice(cl *ast.CompositeLit, moduleDir string) []ParsedAsset {
 	var assets []ParsedAsset
 	for _, elt := range cl.Elts {
@@ -71,6 +72,7 @@ func parseAssetSlice(cl *ast.CompositeLit, moduleDir string) []ParsedAsset {
 	}
 	return assets
 }
+
 func parseAsset(cl *ast.CompositeLit, moduleDir string) ParsedAsset {
 	var asset ParsedAsset
 	var path string
@@ -105,7 +107,8 @@ func parseAsset(cl *ast.CompositeLit, moduleDir string) ParsedAsset {
 	}
 	return asset
 }
-func resolveVariants(expr ast.Expr) Variant {
+
+func resolveVariants(expr ast.Expr) image.Variant {
 	switch e := expr.(type) {
 	case *ast.SelectorExpr:
 		return variantFromName(e.Sel.Name)
@@ -122,21 +125,22 @@ func resolveVariants(expr ast.Expr) Variant {
 	case *ast.BasicLit:
 		if e.Kind == token.INT {
 			v, _ := strconv.ParseUint(e.Value, 10, 8)
-			return Variant(v)
+			return image.Variant(v)
 		}
 	}
 	return 0
 }
-func variantFromName(name string) Variant {
+
+func variantFromName(name string) image.Variant {
 	switch name {
 	case "VariantS":
-		return VariantS
+		return image.VariantS
 	case "VariantM":
-		return VariantM
+		return image.VariantM
 	case "VariantL":
-		return VariantL
+		return image.VariantL
 	case "AllVariants":
-		return AllVariants
+		return image.AllVariants
 	default:
 		return 0
 	}

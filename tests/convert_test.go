@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/tinywasm/image"
+	"github.com/tinywasm/image/min"
 )
 
 func TestConvertJPGToWebP(t *testing.T) {
@@ -14,14 +15,14 @@ func TestConvertJPGToWebP(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 200, 100)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantL,
 		Alt:      "Test",
 		BaseName: "test",
 	}
 
-	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
@@ -35,7 +36,7 @@ func TestConvertNoUpscale(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantL,
 		Alt:      "Small",
@@ -43,7 +44,7 @@ func TestConvertNoUpscale(t *testing.T) {
 	}
 
 	skipped := false
-	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {
 		for _, msg := range m {
 			if msg == "image smaller than target, skipping resize" {
 				skipped = true
@@ -66,14 +67,14 @@ func TestConvertVariantSubset(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 200, 100)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantS | image.VariantM,
 		Alt:      "Multi",
 		BaseName: "multi",
 	}
 
-	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
@@ -89,13 +90,13 @@ func TestConvertOutputNaming(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantS,
 		BaseName: "my-custom-name",
 	}
 
-	image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 
 	expected := filepath.Join(env.OutputDir, "my-custom-name.S.webp")
 	if _, err := os.Stat(expected); os.IsNotExist(err) {
@@ -110,16 +111,18 @@ func TestConvertAltDerivedFromFilename(t *testing.T) {
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
 
-	assets, _ := image.ExtractImages(env.ModuleDir)
-	// We need writeSSRGo for ExtractImages to work in this env
-	env.writeSSRGo(`
+	// We need writeImageGo for ExtractImages to work in this env
+	env.writeImageGo(`
 package m
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{{Path: "img/my-hero.jpg", Variants: image.VariantS}}
 }
 `)
-	assets, _ = image.ExtractImages(env.ModuleDir)
+	assets, _ := min.ExtractImages(env.ModuleDir)
+	if len(assets) == 0 {
+		t.Fatalf("expected 1 asset, got 0")
+	}
 	if assets[0].Alt != "my hero" {
 		t.Errorf("expected alt 'my hero', got %q", assets[0].Alt)
 	}
@@ -134,13 +137,7 @@ func TestConvertOutputDirCreated(t *testing.T) {
 	createTestImage(imgPath, 100, 100)
 
 	// We need to ensure LoadImages or ReloadModule creates it, or ProcessImage
-	// Actually, let's see where it's created.
-	// ProcessImage calls writeWebP which calls os.Create. os.Create doesn't create directories.
-	// ReloadModule should probably create it.
-
-	err := env.Handler.ReloadModule(env.ModuleDir)
-	// Wait, we need to set OutputDir in config
-	env.Handler = image.New(&image.Config{
+	env.Handler = min.New(&min.Config{
 		RootDir:   env.ModuleDir,
 		OutputDir: newOutputDir,
 		Quality:   82,
@@ -149,12 +146,9 @@ func TestConvertOutputDirCreated(t *testing.T) {
 		return []string{env.ModuleDir}, nil
 	})
 
-	env.writeSSRGoWithImages([]image.Asset{{Path: "test.jpg", Variants: image.VariantS}})
+	env.writeImageGoWithImages([]image.Asset{{Path: "test.jpg", Variants: image.VariantS}})
 
-	// We need to make sure the directory is created.
-	// Let's modify ReloadModule to create the output dir if it doesn't exist.
-
-	err = env.Handler.ReloadModule(env.ModuleDir)
+	err := env.Handler.ReloadModule(env.ModuleDir)
 	if err != nil {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
@@ -169,13 +163,13 @@ func TestConvertPNGTransparency(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "transparent.png")
 	createTestPNG(imgPath, 100, 100, true)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantS,
 		BaseName: "transparent",
 	}
 
-	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
@@ -188,7 +182,7 @@ func TestConvertQualityRange(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "quality.jpg")
 	createTestImage(imgPath, 500, 500)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantS,
 		BaseName: "quality",
@@ -196,7 +190,7 @@ func TestConvertQualityRange(t *testing.T) {
 
 	// Just verify it doesn't error with different qualities
 	for _, q := range []int{50, 82} {
-		_, err := image.ProcessImage(asset, env.OutputDir, q, func(m ...any) {})
+		_, err := min.ProcessImage(asset, env.OutputDir, q, func(m ...any) {})
 		if err != nil {
 			t.Errorf("ProcessImage failed for quality %d: %v", q, err)
 		}
@@ -208,13 +202,13 @@ func TestConvertCorruptImage(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "corrupt.jpg")
 	os.WriteFile(imgPath, []byte("not an image"), 0644)
 
-	asset := image.ParsedAsset{
+	asset := min.ParsedAsset{
 		AbsPath:  imgPath,
 		Variants: image.VariantS,
 		BaseName: "corrupt",
 	}
 
-	_, err := image.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err == nil {
 		t.Error("expected error for corrupt image")
 	}

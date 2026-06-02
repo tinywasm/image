@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/tinywasm/image"
+	"github.com/tinywasm/image/min"
 )
 
 func TestExtractImagesLiteral(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
@@ -19,7 +20,7 @@ func RenderImages() []image.Asset {
 }
 `)
 
-	assets, err := image.ExtractImages(env.ModuleDir)
+	assets, err := min.ExtractImages(env.ModuleDir)
 	if err != nil {
 		t.Fatalf("ExtractImages failed: %v", err)
 	}
@@ -39,7 +40,7 @@ func RenderImages() []image.Asset {
 
 func TestExtractImagesAllVariants(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
@@ -49,7 +50,7 @@ func RenderImages() []image.Asset {
 }
 `)
 
-	assets, _ := image.ExtractImages(env.ModuleDir)
+	assets, _ := min.ExtractImages(env.ModuleDir)
 	if len(assets) != 1 || assets[0].Variants != image.AllVariants {
 		t.Errorf("failed to resolve AllVariants")
 	}
@@ -57,7 +58,7 @@ func RenderImages() []image.Asset {
 
 func TestExtractImagesAltEmpty(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
@@ -67,7 +68,7 @@ func RenderImages() []image.Asset {
 }
 `)
 
-	assets, _ := image.ExtractImages(env.ModuleDir)
+	assets, _ := min.ExtractImages(env.ModuleDir)
 	if assets[0].Alt != "my hero" {
 		t.Errorf("expected alt 'my hero', got %q", assets[0].Alt)
 	}
@@ -75,12 +76,12 @@ func RenderImages() []image.Asset {
 
 func TestExtractImagesNoRenderImages(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 func Other() {}
 `)
 
-	assets, err := image.ExtractImages(env.ModuleDir)
+	assets, err := min.ExtractImages(env.ModuleDir)
 	if err != nil {
 		t.Fatalf("ExtractImages failed: %v", err)
 	}
@@ -89,9 +90,9 @@ func Other() {}
 	}
 }
 
-func TestExtractImagesNoSSRFile(t *testing.T) {
+func TestExtractImagesNoImageFile(t *testing.T) {
 	env := newTestEnv(t)
-	assets, err := image.ExtractImages(env.ModuleDir)
+	assets, err := min.ExtractImages(env.ModuleDir)
 	if err != nil {
 		t.Fatalf("ExtractImages failed: %v", err)
 	}
@@ -102,7 +103,7 @@ func TestExtractImagesNoSSRFile(t *testing.T) {
 
 func TestExtractAbsPathResolution(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
@@ -112,7 +113,7 @@ func RenderImages() []image.Asset {
 }
 `)
 
-	assets, _ := image.ExtractImages(env.ModuleDir)
+	assets, _ := min.ExtractImages(env.ModuleDir)
 	expected := filepath.Join(env.ModuleDir, "img/logo.png")
 	if assets[0].AbsPath != expected {
 		t.Errorf("expected AbsPath %q, got %q", expected, assets[0].AbsPath)
@@ -121,7 +122,7 @@ func RenderImages() []image.Asset {
 
 func TestExtractImagesLocalVar(t *testing.T) {
 	env := newTestEnv(t)
-	env.writeSSRGo(`
+	env.writeImageGo(`
 package module
 import "github.com/tinywasm/image"
 func RenderImages() []image.Asset {
@@ -132,7 +133,7 @@ func RenderImages() []image.Asset {
 }
 `)
 
-	assets, _ := image.ExtractImages(env.ModuleDir)
+	assets, _ := min.ExtractImages(env.ModuleDir)
 	if len(assets) != 1 {
 		t.Fatalf("expected 1 asset, got %d", len(assets))
 	}

@@ -14,7 +14,7 @@ func TestMtimeSkipsUnchanged(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
-	env.writeSSRGoWithImages([]image.Asset{
+	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS, Alt: "Logo"},
 	})
 
@@ -50,7 +50,7 @@ func TestMtimeReprocessesOnChange(t *testing.T) {
 	srcPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(srcPath), 0755)
 	createTestImage(srcPath, 100, 100)
-	env.writeSSRGoWithImages([]image.Asset{
+	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS, Alt: "Logo"},
 	})
 
@@ -93,7 +93,7 @@ func TestMtimeMissingVariant(t *testing.T) {
 	imgPath := filepath.Join(env.ModuleDir, "img/logo.png")
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
 	createTestImage(imgPath, 100, 100)
-	env.writeSSRGoWithImages([]image.Asset{
+	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS | image.VariantM, Alt: "Logo"},
 	})
 
