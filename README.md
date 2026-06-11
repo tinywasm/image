@@ -32,8 +32,9 @@ Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de opt
     import "github.com/tinywasm/image/min"
 
     handler := min.New(&min.Config{RootDir: ".", OutputDir: "web/public/img", Quality: 80})
-    handler.InitDefaultLoader()
     handler.LoadImages()
+
+> La detección de módulos se delega a [tinywasm/modfind](https://github.com/tinywasm/modfind).
 
 ## Related Packages
 - [tinywasm/dom](https://github.com/tinywasm/dom) — Element type

@@ -12,6 +12,7 @@ import (
 
 	"github.com/tinywasm/image"
 	"github.com/tinywasm/image/min"
+	"github.com/tinywasm/modfind"
 )
 
 type TestEnv struct {
@@ -32,9 +33,12 @@ func newTestEnv(t *testing.T) *TestEnv {
 	}
 
 	handler := min.New(config)
-	handler.SetListModulesFn(func(rootDir string) ([]string, error) {
-		return []string{moduleDir}, nil
+
+	f := modfind.New()
+	f.Seed(moduleDir, []modfind.Module{
+		{Dir: moduleDir, Path: "github.com/tinywasm/image/testmodule"},
 	})
+	handler.SetFinder(f)
 
 	return &TestEnv{
 		t:         t,
