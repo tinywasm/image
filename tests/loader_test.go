@@ -7,6 +7,7 @@ import (
 
 	"github.com/tinywasm/image"
 	"github.com/tinywasm/image/min"
+	"github.com/tinywasm/modfind"
 )
 
 func TestLoadImagesFromModule(t *testing.T) {
@@ -110,11 +111,20 @@ func TestGlobalOrphanCleanup(t *testing.T) {
 
 func TestLoadImagesGoListFails(t *testing.T) {
 	env := newTestEnv(t)
-	env.Handler.SetListModulesFn(func(rootDir string) ([]string, error) {
-		return nil, os.ErrPermission
+	f := modfind.New()
+
+	// We want to simulate a go list failure.
+	// We can just use an invalid directory to trigger an error in modfind.Dirs
+	handler := min.New(&min.Config{
+		RootDir:   "/non-existent-dir-at-all-12345",
+		OutputDir: env.OutputDir,
+	})
+	handler.SetFinder(f)
+	handler.SetLog(func(messages ...any) {
+		// Just to capture that it's called
 	})
 
-	err := env.Handler.LoadImages()
+	err := handler.LoadImages()
 	if err != nil {
 		t.Fatalf("LoadImages should not return error on go list failure, only log warning. Got: %v", err)
 	}

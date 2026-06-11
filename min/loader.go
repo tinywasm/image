@@ -1,44 +1,22 @@
 package min
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/tinywasm/image"
+	"github.com/tinywasm/modfind"
 )
 
-func (h *Handler) listModulesReal(rootDir string) ([]string, error) {
-	cmd := exec.Command("go", "list", "-m", "-json", "all")
-	cmd.Dir = rootDir
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	if err != nil {
-		return nil, err
+func (h *Handler) moduleDirs() ([]string, error) {
+	h.mu.Lock()
+	if h.finder == nil {
+		h.finder = modfind.New()
 	}
-	var dirs []string
-	dec := json.NewDecoder(&out)
-	for dec.More() {
-		var m struct {
-			Dir string
-		}
-		if err := dec.Decode(&m); err != nil {
-			return nil, err
-		}
-		if m.Dir != "" {
-			dirs = append(dirs, m.Dir)
-		}
-	}
-	return dirs, nil
-}
-
-func (h *Handler) InitDefaultLoader() {
-	h.listModulesFn = h.listModulesReal
+	h.mu.Unlock()
+	return h.finder.Dirs(h.config.RootDir)
 }
 
 // LoadImages discovers modules via go list and processes their images.
@@ -46,10 +24,8 @@ func (h *Handler) LoadImages() error {
 	if h.config.RootDir == "" {
 		return fmt.Errorf("config.RootDir is empty")
 	}
-	if h.listModulesFn == nil {
-		return fmt.Errorf("listModulesFn not set")
-	}
-	moduleDirs, err := h.listModulesFn(h.config.RootDir)
+
+	moduleDirs, err := h.moduleDirs()
 	if err != nil {
 		h.log("warning: failed to list modules:", err)
 		return nil

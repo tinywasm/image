@@ -7,6 +7,7 @@ import (
 
 	"github.com/tinywasm/image"
 	"github.com/tinywasm/image/min"
+	"github.com/tinywasm/modfind"
 )
 
 func TestConvertJPGToWebP(t *testing.T) {
@@ -142,9 +143,9 @@ func TestConvertOutputDirCreated(t *testing.T) {
 		OutputDir: newOutputDir,
 		Quality:   82,
 	})
-	env.Handler.SetListModulesFn(func(rootDir string) ([]string, error) {
-		return []string{env.ModuleDir}, nil
-	})
+	f := modfind.New()
+	f.Seed(env.ModuleDir, []modfind.Module{{Dir: env.ModuleDir, Path: "m"}})
+	env.Handler.SetFinder(f)
 
 	env.writeImageGoWithImages([]image.Asset{{Path: "test.jpg", Variants: image.VariantS}})
 

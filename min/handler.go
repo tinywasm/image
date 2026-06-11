@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/tinywasm/image"
+	"github.com/tinywasm/modfind"
 )
 
 type ParsedAsset struct {
@@ -14,10 +15,10 @@ type ParsedAsset struct {
 }
 
 type Handler struct {
-	mu            sync.Mutex
-	config        *Config
-	log           func(messages ...any)
-	listModulesFn func(rootDir string) ([]string, error)
+	mu     sync.Mutex
+	config *Config
+	log    func(messages ...any)
+	finder *modfind.Finder
 }
 
 type Config struct {
@@ -37,8 +38,8 @@ func (h *Handler) SetLog(fn func(messages ...any)) {
 	h.log = fn
 }
 
-func (h *Handler) SetListModulesFn(fn func(rootDir string) ([]string, error)) {
-	h.listModulesFn = fn
+func (h *Handler) SetFinder(f *modfind.Finder) {
+	h.finder = f
 }
 
 func (h *Handler) Name() string           { return "IMAGE" }
