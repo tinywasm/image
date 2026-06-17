@@ -6,7 +6,7 @@ require (
 	github.com/HugoSmits86/nativewebp v1.2.1
 	github.com/disintegration/imaging v1.6.2
 	github.com/tinywasm/dom v0.10.1
-	github.com/tinywasm/fmt v0.24.0
+	github.com/tinywasm/fmt v0.24.1
 	github.com/tinywasm/modfind v0.0.4
 )
 
