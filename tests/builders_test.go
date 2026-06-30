@@ -35,7 +35,7 @@ func TestImg_LazySize(t *testing.T) {
 }
 
 func TestPicture_WithSources(t *testing.T) {
-	got := Picture(
+	got := Picture().Child(
 		Source("hero.webp", "image/webp"),
 		Img("/hero.png", "Hero").AsElement(),
 	).String()
@@ -44,5 +44,15 @@ func TestPicture_WithSources(t *testing.T) {
 	}
 	if !strings.Contains(got, "type='image/webp'") {
 		t.Error("expected webp source")
+	}
+}
+
+func TestPicture_Typed(t *testing.T) {
+	got := Picture().Child(Source("hero.webp", "image/webp")).String()
+	if !strings.Contains(got, "<picture") {
+		t.Error("expected <picture>")
+	}
+	if !strings.Contains(got, "<source srcset='hero.webp'") {
+		t.Error("expected <source srcset=...>")
 	}
 }
