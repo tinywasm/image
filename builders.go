@@ -55,8 +55,8 @@ func (i *ImgElement) String() string {
 }
 
 // Picture builds a <picture> element for responsive images.
-func Picture(children ...any) *dom.Element {
-	return dom.NewElement("picture").Add(children...)
+func Picture() *dom.Element {
+	return dom.NewElement("picture")
 }
 
 // Source builds a <source> for use inside <picture>.
