@@ -14,7 +14,7 @@ func TestLoadImagesFromModule(t *testing.T) {
 	env := newTestEnv(t)
 
 	imgPath := "img/logo.png"
-	env.copyTestImage(imgPath, "gopher.S.png")
+	env.createTinyImage(imgPath)
 
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: imgPath, Variants: image.VariantS, Alt: "Gopher"},
@@ -31,14 +31,14 @@ func TestLoadImagesFromModule(t *testing.T) {
 func TestReloadModuleNewImage(t *testing.T) {
 	env := newTestEnv(t)
 
-	env.copyTestImage("img/one.png", "gopher.S.png")
+	env.createTinyImage("img/one.png")
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/one.png", Variants: image.VariantS},
 	})
 	env.Handler.ReloadModule(env.ModuleDir)
 	env.assertWebPExists("one", image.VariantS)
 
-	env.copyTestImage("img/two.png", "gopher.S.png")
+	env.createTinyImage("img/two.png")
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/one.png", Variants: image.VariantS},
 		{Path: "img/two.png", Variants: image.VariantS},
@@ -56,8 +56,8 @@ func TestReloadModuleNewImage(t *testing.T) {
 func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 	env := newTestEnv(t)
 
-	env.copyTestImage("img/one.png", "gopher.S.png")
-	env.copyTestImage("img/two.png", "gopher.S.png")
+	env.createTinyImage("img/one.png")
+	env.createTinyImage("img/two.png")
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/one.png", Variants: image.VariantS},
 		{Path: "img/two.png", Variants: image.VariantS},
@@ -83,7 +83,7 @@ func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 func TestGlobalOrphanCleanup(t *testing.T) {
 	env := newTestEnv(t)
 
-	env.copyTestImage("img/one.png", "gopher.S.png")
+	env.createTinyImage("img/one.png")
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/one.png", Variants: image.VariantS},
 	})

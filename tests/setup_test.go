@@ -88,6 +88,17 @@ func (e *TestEnv) copyTestImage(destRelPath, testdataFile string) {
 	}
 }
 
+// createTinyImage creates a 4×4 synthetic PNG — fast to encode as WebP, for loader behaviour tests.
+func (e *TestEnv) createTinyImage(destRelPath string) {
+	destPath := filepath.Join(e.ModuleDir, destRelPath)
+	if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+		e.t.Fatalf("failed to create dir for %s: %v", destRelPath, err)
+	}
+	if err := createTestPNG(destPath, 4, 4, false); err != nil {
+		e.t.Fatalf("failed to create tiny image %s: %v", destRelPath, err)
+	}
+}
+
 func (e *TestEnv) assertWebPExists(name string, v image.Variant) {
 	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, variantName(v)))
 	if _, err := os.Stat(path); os.IsNotExist(err) {
