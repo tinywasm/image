@@ -4,8 +4,8 @@ github.com/disintegration/imaging v1.6.2 h1:w1LecBlG2Lnp8B3jk5zSuNqd7b4DXhcjwek1
 github.com/disintegration/imaging v1.6.2/go.mod h1:44/5580QXChDfwIclfc/PCwrr44amcmDAg8hxG0Ewe4=
 github.com/tinywasm/css v0.3.0 h1:Ahidt6iIjt7zEVsficKeCLDh9A4/2jy3yahO01/L4Ys=
 github.com/tinywasm/css v0.3.0/go.mod h1:yEE72kT1GaC67CDvMaqQ62Vq6xNIOjdYAGcxp+qo1pk=
-github.com/tinywasm/dom v0.13.2 h1:r5w2Q33xrCfU7j7CkTBMmn2dndHXnhOeLJuxGTKxNfI=
-github.com/tinywasm/dom v0.13.2/go.mod h1:lc8B0WkIOTWmCLCBTtr2g1Om4igOQnGve/xvIZWOrdI=
+github.com/tinywasm/dom v0.13.3 h1:J94RG8rhw+JoQxgzxsKVEUHm499BBWnIZ/0IBfvSGQU=
+github.com/tinywasm/dom v0.13.3/go.mod h1:lc8B0WkIOTWmCLCBTtr2g1Om4igOQnGve/xvIZWOrdI=
 github.com/tinywasm/fmt v0.25.5 h1:2nBU5H1lszhkGIusm7m4S+rGM2rPiIJkhvQqwqN17qo=
 github.com/tinywasm/fmt v0.25.5/go.mod h1:2Y4hlsQxqVsZ5z9vQL5XQbEzLQtQOr1Bhp44nPGfydA=
 github.com/tinywasm/modfind v0.0.4 h1:g7EFZArEftll9pxg5VAToIltVnEMRWfE+KEjPJpsNgY=
