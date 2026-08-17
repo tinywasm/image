@@ -82,7 +82,6 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 		return
 	}
 	activeFiles := make(map[string]bool)
-	extensions := []string{".jpg", ".webp"}
 	for _, asset := range allAssets {
 		variantInfos := []struct {
 			v image.Variant
@@ -91,6 +90,14 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 			{image.VariantS, "S"},
 			{image.VariantM, "M"},
 			{image.VariantL, "L"},
+		}
+		// Only the extension this source encodes to is live. Marking both
+		// keeps a lossless .webp left over from an older release alive
+		// forever, sitting next to the .jpg that superseded it — the page
+		// then ships one of them and the other is pure dead weight.
+		extensions := []string{".jpg", ".webp"}
+		if ext := ExpectedExt(asset.AbsPath); ext != "" {
+			extensions = []string{ext}
 		}
 		for _, vi := range variantInfos {
 			if asset.Variants&vi.v != 0 {

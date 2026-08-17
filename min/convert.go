@@ -21,10 +21,7 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 		return nil, fmt.Errorf("failed to open image %s: %w", src.AbsPath, err)
 	}
 	opaque := isOpaque(img)
-	ext := ".jpg"
-	if !opaque {
-		ext = ".webp"
-	}
+	ext := extForOpacity(opaque)
 
 	bounds := img.Bounds()
 	originalWidth := bounds.Dx()
@@ -61,6 +58,37 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 		}
 	}
 	return outputFiles, nil
+}
+
+// ExpectedExt is the extension ProcessImage will write for src — the single
+// answer the whole pipeline asks, so that "is this output current?" and "is
+// this output an orphan?" cannot disagree with what the encoder actually
+// produces. Treating both extensions as equally valid is what let a lossless
+// .webp written by an older release survive next to the .jpg that replaced it:
+// each variant appeared up to date because SOME file matched, and cleanup
+// spared the stale one because SOME asset could have claimed it.
+//
+// A JPEG source needs no decode: the format has no alpha channel, so it is
+// opaque by construction. Anything else has to be read. An unreadable source
+// returns "", meaning "unknown" — callers then fall back to accepting either
+// extension rather than deleting output they cannot reason about.
+func ExpectedExt(srcPath string) string {
+	switch strings.ToLower(filepath.Ext(srcPath)) {
+	case ".jpg", ".jpeg":
+		return ".jpg"
+	}
+	img, err := imaging.Open(srcPath)
+	if err != nil {
+		return ""
+	}
+	return extForOpacity(isOpaque(img))
+}
+
+func extForOpacity(opaque bool) string {
+	if opaque {
+		return ".jpg"
+	}
+	return ".webp"
 }
 
 func isOpaque(img stdimage.Image) bool {

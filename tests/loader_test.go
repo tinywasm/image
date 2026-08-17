@@ -155,3 +155,39 @@ func TestReloadModuleNoImageFile(t *testing.T) {
 		t.Fatalf("ReloadModule should not fail if no image.go exists: %v", err)
 	}
 }
+
+// TestStaleLosslessOutputIsReplacedAndRemoved reproduces what shipped in
+// mjosefa-website: a site built with the old lossless-WebP encoder, then
+// rebuilt after the switch to JPEG for opaque photographs. Every variant ended
+// up on disk TWICE — a fresh 52 KB .jpg next to a 1.4 MB .webp from the
+// previous release — because both the freshness check and the orphan sweep
+// accepted either extension. The .webp was never regenerated (some file
+// matched, so the asset looked current) and never deleted (some asset could
+// have claimed it, so it looked live).
+func TestStaleLosslessOutputIsReplacedAndRemoved(t *testing.T) {
+	env := newTestEnv(t)
+
+	env.createTinyImage("img/photo.jpg")
+	env.writeImageGoWithImages([]image.Asset{
+		{Path: "img/photo.jpg", Variants: image.VariantS},
+	})
+
+	// The previous release's output: same base name and variant, WebP.
+	stale := filepath.Join(env.OutputDir, "photo.S.webp")
+	if err := os.MkdirAll(env.OutputDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(stale, []byte("lossless webp from the old encoder"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env.Handler.LoadImages()
+
+	// The opaque JPEG source must be encoded to .jpg despite the .webp sitting
+	// there looking like a finished output.
+	env.assertJPGExists("photo", image.VariantS)
+
+	if _, err := os.Stat(stale); err == nil {
+		t.Error("stale .webp from the previous encoder survived the rebuild; the page now ships two copies of every photograph")
+	}
+}

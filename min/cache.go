@@ -26,7 +26,15 @@ func IsUpToDate(srcPath string, variants image.Variant, outputDir string) bool {
 		{image.VariantL, "L"},
 	}
 	baseName := strings.TrimSuffix(filepath.Base(srcPath), filepath.Ext(srcPath))
+
+	// Only the extension this source will actually be encoded to counts. If a
+	// previous release wrote the other one, this asset is NOT up to date — it
+	// still has to be re-encoded, and the leftover is cleanOrphans' problem.
 	extensions := []string{".jpg", ".webp"}
+	if ext := ExpectedExt(srcPath); ext != "" {
+		extensions = []string{ext}
+	}
+
 	for _, vi := range variantInfos {
 		if variants&vi.v != 0 {
 			found := false
