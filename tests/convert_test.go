@@ -10,7 +10,7 @@ import (
 	"github.com/tinywasm/modfind"
 )
 
-func TestConvertJPGToWebP(t *testing.T) {
+func TestConvertJPGToJPG(t *testing.T) {
 	env := newTestEnv(t)
 	imgPath := filepath.Join(env.ModuleDir, "img/test.jpg")
 	os.MkdirAll(filepath.Dir(imgPath), 0755)
@@ -23,12 +23,16 @@ func TestConvertJPGToWebP(t *testing.T) {
 		BaseName: "test",
 	}
 
-	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	outputs, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	env.assertWebPExists("test", image.VariantL)
+	if len(outputs) != 1 || outputs[0] != "test.L.jpg" {
+		t.Errorf("expected output [test.L.jpg], got %v", outputs)
+	}
+
+	env.assertJPGExists("test", image.VariantL)
 }
 
 func TestConvertNoUpscale(t *testing.T) {
@@ -59,7 +63,7 @@ func TestConvertNoUpscale(t *testing.T) {
 	if !skipped {
 		t.Error("expected resize to be skipped for small image")
 	}
-	env.assertWebPExists("small", image.VariantL)
+	env.assertJPGExists("small", image.VariantL)
 }
 
 func TestConvertVariantSubset(t *testing.T) {
@@ -80,9 +84,9 @@ func TestConvertVariantSubset(t *testing.T) {
 		t.Fatalf("ProcessImage failed: %v", err)
 	}
 
-	env.assertWebPExists("multi", image.VariantS)
-	env.assertWebPExists("multi", image.VariantM)
-	env.assertWebPNotExists("multi", image.VariantL)
+	env.assertJPGExists("multi", image.VariantS)
+	env.assertJPGExists("multi", image.VariantM)
+	env.assertJPGNotExists("multi", image.VariantL)
 }
 
 func TestConvertOutputNaming(t *testing.T) {
@@ -99,7 +103,7 @@ func TestConvertOutputNaming(t *testing.T) {
 
 	min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 
-	expected := filepath.Join(env.OutputDir, "my-custom-name.S.webp")
+	expected := filepath.Join(env.OutputDir, "my-custom-name.S.jpg")
 	if _, err := os.Stat(expected); os.IsNotExist(err) {
 		t.Errorf("expected output file %s to exist", expected)
 	}
@@ -170,9 +174,13 @@ func TestConvertPNGTransparency(t *testing.T) {
 		BaseName: "transparent",
 	}
 
-	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	outputs, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err != nil {
 		t.Fatalf("ProcessImage failed: %v", err)
+	}
+
+	if len(outputs) != 1 || outputs[0] != "transparent.S.webp" {
+		t.Errorf("expected transparent PNG output [transparent.S.webp], got %v", outputs)
 	}
 
 	env.assertWebPExists("transparent", image.VariantS)
@@ -212,5 +220,42 @@ func TestConvertCorruptImage(t *testing.T) {
 	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
 	if err == nil {
 		t.Error("expected error for corrupt image")
+	}
+}
+
+func TestConvertPhotographicCompression(t *testing.T) {
+	env := newTestEnv(t)
+	imgPath := filepath.Join(env.ModuleDir, "photo.jpg")
+	// Create a high resolution 3000x2000 photographic test image
+	createTestImage(imgPath, 3000, 2000)
+
+	asset := min.ParsedAsset{
+		AbsPath:  imgPath,
+		Variants: image.VariantS | image.VariantL,
+		Alt:      "Photo",
+		BaseName: "photo",
+	}
+
+	_, err := min.ProcessImage(asset, env.OutputDir, 82, func(m ...any) {})
+	if err != nil {
+		t.Fatalf("ProcessImage failed: %v", err)
+	}
+
+	// L variant (1920px) should be under 300 KB
+	lStat, err := os.Stat(filepath.Join(env.OutputDir, "photo.L.jpg"))
+	if err != nil {
+		t.Fatalf("photo.L.jpg not found: %v", err)
+	}
+	if lStat.Size() >= 300*1024 {
+		t.Errorf("expected photo.L.jpg size < 300 KB, got %d bytes", lStat.Size())
+	}
+
+	// S variant (640px) should be under 100 KB
+	sStat, err := os.Stat(filepath.Join(env.OutputDir, "photo.S.jpg"))
+	if err != nil {
+		t.Fatalf("photo.S.jpg not found: %v", err)
+	}
+	if sStat.Size() >= 100*1024 {
+		t.Errorf("expected photo.S.jpg size < 100 KB, got %d bytes", sStat.Size())
 	}
 }

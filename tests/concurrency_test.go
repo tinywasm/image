@@ -29,7 +29,8 @@ func TestReloadConcurrency(t *testing.T) {
 	}
 
 	wg.Wait()
-	env.assertWebPExists("logo", image.VariantS)
+	// gopher.S.png is opaque, so it yields .jpg
+	env.assertJPGExists("logo", image.VariantS)
 }
 
 func TestLoadAndReloadConcurrent(t *testing.T) {

@@ -23,7 +23,7 @@ func TestMtimeSkipsUnchanged(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	outputPath := filepath.Join(env.OutputDir, "logo.S.webp")
+	outputPath := filepath.Join(env.OutputDir, "logo.S.jpg")
 	stat1, err := os.Stat(outputPath)
 	if err != nil {
 		t.Fatal(err)
@@ -59,7 +59,15 @@ func TestMtimeReprocessesOnChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	outputPath := filepath.Join(env.OutputDir, "logo.S.webp")
+	outputPath := filepath.Join(env.OutputDir, "logo.S.jpg")
+
+	// Set output file mtime to past
+	past := time.Now().Add(-1 * time.Hour)
+	err = os.Chtimes(outputPath, past, past)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	stat1, err := os.Stat(outputPath)
 	if err != nil {
 		t.Fatal(err)
@@ -84,7 +92,7 @@ func TestMtimeReprocessesOnChange(t *testing.T) {
 	}
 
 	if !stat2.ModTime().After(stat1.ModTime()) {
-		t.Error("expected mtime to be updated after source change")
+		t.Errorf("expected mtime (%v) to be updated after source change (was %v)", stat2.ModTime(), stat1.ModTime())
 	}
 }
 
@@ -102,11 +110,11 @@ func TestMtimeMissingVariant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env.assertWebPExists("logo", image.VariantS)
-	env.assertWebPExists("logo", image.VariantM)
+	env.assertJPGExists("logo", image.VariantS)
+	env.assertJPGExists("logo", image.VariantM)
 
 	// Delete one variant
-	err = os.Remove(filepath.Join(env.OutputDir, "logo.M.webp"))
+	err = os.Remove(filepath.Join(env.OutputDir, "logo.M.jpg"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,5 +125,5 @@ func TestMtimeMissingVariant(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	env.assertWebPExists("logo", image.VariantM)
+	env.assertJPGExists("logo", image.VariantM)
 }
