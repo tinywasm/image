@@ -25,7 +25,7 @@ func TestLoadImagesFromModule(t *testing.T) {
 		t.Fatalf("LoadImages failed: %v", err)
 	}
 
-	env.assertWebPExists("logo", image.VariantS)
+	env.assertJPGExists("logo", image.VariantS)
 }
 
 func TestReloadModuleNewImage(t *testing.T) {
@@ -36,7 +36,7 @@ func TestReloadModuleNewImage(t *testing.T) {
 		{Path: "img/one.png", Variants: image.VariantS},
 	})
 	env.Handler.ReloadModule(env.ModuleDir)
-	env.assertWebPExists("one", image.VariantS)
+	env.assertJPGExists("one", image.VariantS)
 
 	env.createTinyImage("img/two.png")
 	env.writeImageGoWithImages([]image.Asset{
@@ -49,8 +49,8 @@ func TestReloadModuleNewImage(t *testing.T) {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
 
-	env.assertWebPExists("one", image.VariantS)
-	env.assertWebPExists("two", image.VariantS)
+	env.assertJPGExists("one", image.VariantS)
+	env.assertJPGExists("two", image.VariantS)
 }
 
 func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
@@ -63,8 +63,8 @@ func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 		{Path: "img/two.png", Variants: image.VariantS},
 	})
 	env.Handler.ReloadModule(env.ModuleDir)
-	env.assertWebPExists("one", image.VariantS)
-	env.assertWebPExists("two", image.VariantS)
+	env.assertJPGExists("one", image.VariantS)
+	env.assertJPGExists("two", image.VariantS)
 
 	env.writeImageGoWithImages([]image.Asset{
 		{Path: "img/one.png", Variants: image.VariantS},
@@ -75,9 +75,9 @@ func TestReloadModuleRemovedImageDoesNotCleanup(t *testing.T) {
 		t.Fatalf("ReloadModule failed: %v", err)
 	}
 
-	env.assertWebPExists("one", image.VariantS)
+	env.assertJPGExists("one", image.VariantS)
 	// ReloadModule no longer cleans orphans (global cleanup only in LoadImages)
-	env.assertWebPExists("two", image.VariantS)
+	env.assertJPGExists("two", image.VariantS)
 }
 
 func TestGlobalOrphanCleanup(t *testing.T) {
@@ -90,23 +90,28 @@ func TestGlobalOrphanCleanup(t *testing.T) {
 
 	// Initial load
 	env.Handler.LoadImages()
-	env.assertWebPExists("one", image.VariantS)
+	env.assertJPGExists("one", image.VariantS)
 
-	// Add an orphan manually
-	orphanPath := filepath.Join(env.OutputDir, "orphan.S.webp")
-	os.WriteFile(orphanPath, []byte("garbage"), 0644)
+	// Add orphans manually (.jpg and .webp)
+	orphanJpgPath := filepath.Join(env.OutputDir, "orphan.S.jpg")
+	os.WriteFile(orphanJpgPath, []byte("garbage"), 0644)
+	orphanWebpPath := filepath.Join(env.OutputDir, "orphan.S.webp")
+	os.WriteFile(orphanWebpPath, []byte("garbage"), 0644)
 
-	// Load again, should cleanup orphan
+	// Load again, should cleanup orphans
 	env.Handler.LoadImages()
-	if _, err := os.Stat(orphanPath); err == nil {
-		t.Error("expected orphan to be removed")
+	if _, err := os.Stat(orphanJpgPath); err == nil {
+		t.Error("expected JPG orphan to be removed")
 	}
-	env.assertWebPExists("one", image.VariantS)
+	if _, err := os.Stat(orphanWebpPath); err == nil {
+		t.Error("expected WebP orphan to be removed")
+	}
+	env.assertJPGExists("one", image.VariantS)
 
 	// Remove image from SSR and load again
 	env.writeImageGoWithImages([]image.Asset{})
 	env.Handler.LoadImages()
-	env.assertWebPNotExists("one", image.VariantS)
+	env.assertJPGNotExists("one", image.VariantS)
 }
 
 func TestLoadImagesGoListFails(t *testing.T) {

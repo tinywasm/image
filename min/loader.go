@@ -1,3 +1,5 @@
+//go:build !wasm
+
 package min
 
 import (
@@ -80,6 +82,7 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 		return
 	}
 	activeFiles := make(map[string]bool)
+	extensions := []string{".jpg", ".webp"}
 	for _, asset := range allAssets {
 		variantInfos := []struct {
 			v image.Variant
@@ -91,7 +94,9 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 		}
 		for _, vi := range variantInfos {
 			if asset.Variants&vi.v != 0 {
-				activeFiles[fmt.Sprintf("%s.%s.webp", asset.BaseName, vi.s)] = true
+				for _, ext := range extensions {
+					activeFiles[fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext)] = true
+				}
 			}
 		}
 	}
@@ -104,7 +109,7 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 			continue
 		}
 		name := f.Name()
-		if strings.HasSuffix(name, ".webp") {
+		if strings.HasSuffix(name, ".webp") || strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".jpeg") {
 			if !activeFiles[name] {
 				os.Remove(filepath.Join(h.config.OutputDir, name))
 			}

@@ -1,12 +1,14 @@
+//go:build !wasm
+
 package min
 
 import (
 	"fmt"
+	stdimage "image"
+	"image/jpeg"
 	"os"
 	"path/filepath"
 	"strings"
-
-	stdimage "image"
 
 	"github.com/HugoSmits86/nativewebp"
 	"github.com/disintegration/imaging"
@@ -18,6 +20,12 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 	if err != nil {
 		return nil, fmt.Errorf("failed to open image %s: %w", src.AbsPath, err)
 	}
+	opaque := isOpaque(img)
+	ext := ".jpg"
+	if !opaque {
+		ext = ".webp"
+	}
+
 	bounds := img.Bounds()
 	originalWidth := bounds.Dx()
 	variants := []struct {
@@ -38,16 +46,37 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 			} else {
 				processedImg = imaging.Resize(img, vInfo.width, 0, imaging.Lanczos)
 			}
-			outputName := fmt.Sprintf("%s.%s.webp", src.BaseName, variantSuffix(vInfo.v))
+			outputName := fmt.Sprintf("%s.%s%s", src.BaseName, variantSuffix(vInfo.v), ext)
 			outputPath := filepath.Join(outputDir, outputName)
-			err := writeWebP(processedImg, outputPath, quality)
+			var err error
+			if opaque {
+				err = writeJPEG(processedImg, outputPath, quality)
+			} else {
+				err = writeWebP(processedImg, outputPath, quality)
+			}
 			if err != nil {
-				return nil, fmt.Errorf("failed to write webp %s: %w", outputName, err)
+				return nil, fmt.Errorf("failed to write %s: %w", outputName, err)
 			}
 			outputFiles = append(outputFiles, outputName)
 		}
 	}
 	return outputFiles, nil
+}
+
+func isOpaque(img stdimage.Image) bool {
+	if o, ok := img.(interface{ Opaque() bool }); ok {
+		return o.Opaque()
+	}
+	bounds := img.Bounds()
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			_, _, _, a := img.At(x, y).RGBA()
+			if a < 0xffff {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func variantSuffix(v image.Variant) string {
@@ -61,6 +90,18 @@ func variantSuffix(v image.Variant) string {
 	default:
 		return "unknown"
 	}
+}
+
+func writeJPEG(img stdimage.Image, path string, quality int) error {
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if quality <= 0 {
+		quality = 75
+	}
+	return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 }
 
 func writeWebP(img stdimage.Image, path string, quality int) error {
