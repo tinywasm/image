@@ -2,6 +2,8 @@
 PLAN: "fix: variantes de fotografías salen en WebP sin pérdida — 10-20x más grandes de lo esperado"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 3599838635258186320
 ---
 
 > Se despacha con el flujo CodeJob. Ver skill: agents-workflow.
