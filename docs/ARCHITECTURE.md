@@ -14,6 +14,7 @@ The package is split into two parts:
 - **`min/convert.go`**: Handles image transformation using `imaging` and `nativewebp`.
 - **`min/loader.go`**: Orchestrates discovery via `go list`.
 - **`min/cache.go`**: Implements mtime-based change detection.
+- **`min/artifacts.go`**: Exposes processed images as in-memory `Artifact` values (`Handler.Artifacts()`) and resolves the default cache location (`DefaultCacheDir`).
 
 ## Core Concepts
 
@@ -28,6 +29,31 @@ To ensure fast development cycles, `image` avoids reprocessing images that haven
 2. If they exist, it compares the `mtime` of the source file (e.g., `.png`) with the `mtime` of the output files (e.g., `.S.webp`).
 3. If the source file is newer than any of its outputs, the image is reprocessed.
 4. If the outputs are newer or equal, the system skips them.
+
+### Serving From Memory: `Artifacts()`
+
+`Config.OutputDir` is where `LoadImages` writes converted files, but a
+development server that serves a site from memory has no other way to obtain
+that content — without `Artifacts()`, the consumer would have to keep a real
+output directory inside the user's project just to have something to serve.
+
+`Handler.Artifacts()` returns one `Artifact{Path, Mediatype, Content}` per file
+that `LoadImages`/`ReloadModule` last produced, read back from `OutputDir`.
+`Path` is `img/<name>` and doubles as the URL; `Mediatype` is derived from the
+file extension (`image/jpeg`, `image/webp`, `image/svg+xml`). A source whose
+output can't be read is skipped silently — the conversion failure was already
+logged.
+
+### Cache vs. Output: `DefaultCacheDir`
+
+`OutputDir` plays two roles that this design keeps separate: it is the
+**cache** that avoids re-encoding unchanged sources between runs, and it can
+also be the **output** a site publishes. A consumer that only needs the former
+(because it serves via `Artifacts()`) should not point `OutputDir` inside the
+user's project. `DefaultCacheDir(rootDir)` returns a per-project directory
+under the OS user cache (`os.UserCacheDir()`), keyed by a truncated SHA-256 of
+`rootDir`, so the cache never lives inside — or gets confused with — a
+project's publishable output.
 
 ## SEO Considerations
 
