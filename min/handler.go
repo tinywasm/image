@@ -21,6 +21,7 @@ type Handler struct {
 	config *Config
 	log    func(messages ...any)
 	finder *modfind.Finder
+	assets []ParsedAsset
 }
 
 type Config struct {
