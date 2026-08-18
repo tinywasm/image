@@ -2,6 +2,8 @@
 PLAN: "feat(min): las imágenes procesadas se exponen como artefactos servibles"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 17032959379592064886
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
