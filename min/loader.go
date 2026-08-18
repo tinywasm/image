@@ -47,13 +47,16 @@ func (h *Handler) LoadImages() error {
 		allAssets = append(allAssets, assets...)
 	}
 	h.cleanOrphans(allAssets)
+
+	h.mu.Lock()
+	h.assets = append([]ParsedAsset(nil), allAssets...)
+	h.mu.Unlock()
+
 	return nil
 }
 
 // ReloadModule re-extracts and re-processes images for a single module.
 func (h *Handler) ReloadModule(moduleDir string) error {
-	h.mu.Lock()
-	defer h.mu.Unlock()
 	assets, err := ExtractImages(moduleDir)
 	if err != nil {
 		return err
@@ -63,6 +66,18 @@ func (h *Handler) ReloadModule(moduleDir string) error {
 			h.log("warning: failed to process asset", asset.AbsPath, ":", err)
 		}
 	}
+
+	h.mu.Lock()
+	cleanModuleDir := filepath.Clean(moduleDir)
+	var filtered []ParsedAsset
+	for _, a := range h.assets {
+		if !strings.HasPrefix(filepath.Clean(a.AbsPath), cleanModuleDir+string(filepath.Separator)) && filepath.Clean(a.AbsPath) != cleanModuleDir {
+			filtered = append(filtered, a)
+		}
+	}
+	h.assets = append(filtered, assets...)
+	h.mu.Unlock()
+
 	return nil
 }
 
@@ -77,38 +92,64 @@ func (h *Handler) processAsset(asset ParsedAsset) error {
 	return err
 }
 
+// outputNames son los archivos que un asset produce en la salida. Es la única
+// derivación de nombres del paquete: si "¿qué archivos vigentes tiene este
+// asset?" y "¿qué archivos hay que servir?" respondieran por separado, un
+// archivo podría estar vigente para la limpieza e invisible para el servidor.
+func outputNames(asset ParsedAsset) []string {
+	if IsVector(asset.AbsPath) {
+		return []string{VectorOutputName(asset.AbsPath)}
+	}
+
+	ext := ExpectedExt(asset.AbsPath)
+	if ext == "" {
+		return nil
+	}
+
+	variantInfos := []struct {
+		v image.Variant
+		s string
+	}{
+		{image.VariantS, "S"},
+		{image.VariantM, "M"},
+		{image.VariantL, "L"},
+	}
+	var out []string
+	for _, vi := range variantInfos {
+		if asset.Variants&vi.v != 0 {
+			out = append(out, fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext))
+		}
+	}
+	return out
+}
+
 func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 	if h.config.OutputDir == "" {
 		return
 	}
 	activeFiles := make(map[string]bool)
 	for _, asset := range allAssets {
-		if IsVector(asset.AbsPath) {
-			activeFiles[VectorOutputName(asset.AbsPath)] = true
-			continue
-		}
-		variantInfos := []struct {
-			v image.Variant
-			s string
-		}{
-			{image.VariantS, "S"},
-			{image.VariantM, "M"},
-			{image.VariantL, "L"},
-		}
-		// Only the extension this source encodes to is live. Marking both
-		// keeps a lossless .webp left over from an older release alive
-		// forever, sitting next to the .jpg that superseded it — the page
-		// then ships one of them and the other is pure dead weight.
-		extensions := []string{".jpg", ".webp"}
-		if ext := ExpectedExt(asset.AbsPath); ext != "" {
-			extensions = []string{ext}
-		}
-		for _, vi := range variantInfos {
-			if asset.Variants&vi.v != 0 {
-				for _, ext := range extensions {
-					activeFiles[fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext)] = true
+		if !IsVector(asset.AbsPath) && ExpectedExt(asset.AbsPath) == "" {
+			variantInfos := []struct {
+				v image.Variant
+				s string
+			}{
+				{image.VariantS, "S"},
+				{image.VariantM, "M"},
+				{image.VariantL, "L"},
+			}
+			extensions := []string{".jpg", ".webp"}
+			for _, vi := range variantInfos {
+				if asset.Variants&vi.v != 0 {
+					for _, ext := range extensions {
+						activeFiles[fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext)] = true
+					}
 				}
 			}
+			continue
+		}
+		for _, name := range outputNames(asset) {
+			activeFiles[name] = true
 		}
 	}
 	files, err := os.ReadDir(h.config.OutputDir)

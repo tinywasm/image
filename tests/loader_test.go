@@ -1,8 +1,13 @@
 package image_test
 
 import (
+	"bytes"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/tinywasm/image"
@@ -252,5 +257,123 @@ func TestUndeclaredVectorIsRemoved(t *testing.T) {
 
 	if _, err := os.Stat(stale); !os.IsNotExist(err) {
 		t.Errorf("un vector sin declarar sobrevivió en la salida: %s", stale)
+	}
+}
+
+// TestArtifactsSirvenElSitioSinTocarElProyecto tiene la forma exacta del
+// consumidor: un servidor de desarrollo que responde peticiones desde memoria.
+// Si Artifacts() no devuelve el contenido, la única alternativa del consumidor
+// es escribir un directorio de salida dentro del proyecto del usuario.
+func TestArtifactsSirvenElSitioSinTocarElProyecto(t *testing.T) {
+	env := newTestEnv(t)
+
+	// 1. Crear origen ráster y vectorial
+	env.createTinyImage("img/foto.png")
+
+	const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>`
+	svgSrcPath := filepath.Join(env.ModuleDir, "img", "logo.svg")
+	if err := os.MkdirAll(filepath.Dir(svgSrcPath), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(svgSrcPath, []byte(svgContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// 2. Declararlos
+	env.writeImageGoWithImages([]image.Asset{
+		{Path: "img/foto.png", Variants: image.VariantM, Alt: "Foto"},
+		{Path: "img/logo.svg", Alt: "Logo"},
+	})
+
+	// 3. LoadImages()
+	if err := env.Handler.LoadImages(); err != nil {
+		t.Fatalf("LoadImages failed: %v", err)
+	}
+
+	// 4. Montar http.ServeMux con los Artifacts()
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		reqPath := strings.TrimPrefix(r.URL.Path, "/")
+		for _, art := range env.Handler.Artifacts() {
+			if art.Path == reqPath {
+				w.Header().Set("Content-Type", art.Mediatype)
+				w.Write(art.Content)
+				return
+			}
+		}
+		http.NotFound(w, r)
+	})
+
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	// 5. Pedir /img/<nombre ráster> y /img/<nombre vector>
+	testCases := []struct {
+		urlPath          string
+		expectedFileName string
+		expectedMime     string
+	}{
+		{"/img/foto.M.jpg", "foto.M.jpg", min.MediatypeJPEG},
+		{"/img/logo.svg", "logo.svg", min.MediatypeSVG},
+	}
+
+	for _, tc := range testCases {
+		resp, err := http.Get(server.URL + tc.urlPath)
+		if err != nil {
+			t.Fatalf("failed to GET %s: %v", tc.urlPath, err)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			t.Errorf("GET %s status code = %d; expected 200", tc.urlPath, resp.StatusCode)
+		}
+
+		contentType := resp.Header.Get("Content-Type")
+		if contentType != tc.expectedMime {
+			t.Errorf("GET %s Content-Type = %q; expected %q", tc.urlPath, contentType, tc.expectedMime)
+		}
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("failed to read body for %s: %v", tc.urlPath, err)
+		}
+
+		expectedOnDiskPath := filepath.Join(env.OutputDir, tc.expectedFileName)
+		diskContent, err := os.ReadFile(expectedOnDiskPath)
+		if err != nil {
+			t.Fatalf("failed to read output file on disk %s: %v", expectedOnDiskPath, err)
+		}
+
+		if !bytes.Equal(body, diskContent) {
+			t.Errorf("GET %s body does not match disk content byte for byte", tc.urlPath)
+		}
+	}
+}
+
+// TestDefaultCacheDirQuedaFueraDelProyecto afirma que min.DefaultCacheDir(root)
+// devuelve una ruta que no tiene a root como prefijo, y que dos raíces
+// distintas dan rutas distintas.
+func TestDefaultCacheDirQuedaFueraDelProyecto(t *testing.T) {
+	root1 := t.TempDir()
+	root2 := t.TempDir()
+
+	cache1, err := min.DefaultCacheDir(root1)
+	if err != nil {
+		t.Fatalf("DefaultCacheDir(root1) failed: %v", err)
+	}
+
+	cache2, err := min.DefaultCacheDir(root2)
+	if err != nil {
+		t.Fatalf("DefaultCacheDir(root2) failed: %v", err)
+	}
+
+	cleanRoot1 := filepath.Clean(root1)
+	cleanCache1 := filepath.Clean(cache1)
+	if strings.HasPrefix(cleanCache1, cleanRoot1) {
+		t.Errorf("cache dir %q is inside root dir %q", cache1, root1)
+	}
+
+	if cache1 == cache2 {
+		t.Errorf("different roots %q and %q generated identical cache dir %q", root1, root2, cache1)
 	}
 }
