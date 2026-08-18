@@ -191,3 +191,66 @@ func TestStaleLosslessOutputIsReplacedAndRemoved(t *testing.T) {
 		t.Error("stale .webp from the previous encoder survived the rebuild; the page now ships two copies of every photograph")
 	}
 }
+
+// TestDeclaredVectorReachesOutput cierra el hueco que hacía que un mismo
+// proyecto sirviera el logo en release y devolviera 404 en desarrollo.
+//
+// Un logo vectorial no cabía en image.Asset —el pipeline solo sabía convertir
+// mapas de bits—, así que cada sitio se escribía su propio copiador de
+// archivos en su herramienta de build. Esa copia era invisible para el
+// demonio, que sirve exactamente lo que este handler produce.
+func TestDeclaredVectorReachesOutput(t *testing.T) {
+	env := newTestEnv(t)
+
+	const logo = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>`
+	srcPath := filepath.Join(env.ModuleDir, "img", "logo-completo.svg")
+	if err := os.MkdirAll(filepath.Dir(srcPath), 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(srcPath, []byte(logo), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env.writeImageGoWithImages([]image.Asset{
+		{Path: "img/logo-completo.svg", Alt: "Logo"},
+	})
+
+	if err := env.Handler.LoadImages(); err != nil {
+		t.Fatalf("LoadImages failed: %v", err)
+	}
+
+	out := filepath.Join(env.OutputDir, "logo-completo.svg")
+	got, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatalf("el vector declarado no llegó a la salida: %v", err)
+	}
+	if string(got) != logo {
+		t.Errorf("el vector se entregó alterado.\nesperado: %q\nobtenido: %q", logo, string(got))
+	}
+}
+
+// TestUndeclaredVectorIsRemoved es la otra mitad de la regla: el sitio se sirve
+// desde lo declarado, no desde lo que alguien dejó a mano en la salida. Un
+// archivo que sobrevive sin declaración es la vía por la que release y
+// desarrollo se desincronizan sin que nada falle.
+func TestUndeclaredVectorIsRemoved(t *testing.T) {
+	env := newTestEnv(t)
+
+	stale := filepath.Join(env.OutputDir, "logo-viejo.svg")
+	if err := os.WriteFile(stale, []byte(`<svg/>`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	env.createTinyImage("img/foto.png")
+	env.writeImageGoWithImages([]image.Asset{
+		{Path: "img/foto.png", Variants: image.VariantS},
+	})
+
+	if err := env.Handler.LoadImages(); err != nil {
+		t.Fatalf("LoadImages failed: %v", err)
+	}
+
+	if _, err := os.Stat(stale); !os.IsNotExist(err) {
+		t.Errorf("un vector sin declarar sobrevivió en la salida: %s", stale)
+	}
+}

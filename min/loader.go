@@ -83,6 +83,10 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 	}
 	activeFiles := make(map[string]bool)
 	for _, asset := range allAssets {
+		if IsVector(asset.AbsPath) {
+			activeFiles[VectorOutputName(asset.AbsPath)] = true
+			continue
+		}
 		variantInfos := []struct {
 			v image.Variant
 			s string
@@ -116,7 +120,12 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 			continue
 		}
 		name := f.Name()
-		if strings.HasSuffix(name, ".webp") || strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".jpeg") {
+		// El barrido cubre también .svg: un vector solo llega a la salida si
+		// alguien lo declaró, así que uno sin declarar es un resto de una
+		// declaración borrada, no un archivo que alguien dejó a mano. Depender
+		// de archivos colocados a mano en la salida es justo lo que hacía que
+		// desarrollo y release sirvieran sitios distintos.
+		if strings.HasSuffix(name, ".webp") || strings.HasSuffix(name, ".jpg") || strings.HasSuffix(name, ".jpeg") || strings.HasSuffix(name, vectorExt) {
 			if !activeFiles[name] {
 				os.Remove(filepath.Join(h.config.OutputDir, name))
 			}

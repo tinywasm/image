@@ -16,6 +16,10 @@ import (
 )
 
 func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...any)) ([]string, error) {
+	if IsVector(src.AbsPath) {
+		return copyVerbatim(src, outputDir)
+	}
+
 	img, err := imaging.Open(src.AbsPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open image %s: %w", src.AbsPath, err)
@@ -76,6 +80,8 @@ func ExpectedExt(srcPath string) string {
 	switch strings.ToLower(filepath.Ext(srcPath)) {
 	case ".jpg", ".jpeg":
 		return ".jpg"
+	case vectorExt:
+		return vectorExt
 	}
 	img, err := imaging.Open(srcPath)
 	if err != nil {
@@ -145,4 +151,39 @@ func writeWebP(img stdimage.Image, path string, quality int) error {
 
 func deriveAlt(baseName string) string {
 	return strings.ReplaceAll(baseName, "-", " ")
+}
+
+// vectorExt es la única extensión sin variantes rasterizadas: un vector ya
+// escala, así que redimensionarlo no significa nada.
+const vectorExt = ".svg"
+
+// IsVector responde si la fuente se entrega tal cual en vez de codificarse.
+//
+// Existe porque un logo vectorial no tiene dónde vivir en un pipeline que solo
+// sabía convertir mapas de bits: quedaba fuera de image.Asset y cada sitio se
+// escribía su propio copiador de archivos. Ese copiador era invisible para el
+// demonio, así que el mismo proyecto servía el logo en release y devolvía 404
+// en desarrollo.
+func IsVector(srcPath string) bool {
+	return strings.EqualFold(filepath.Ext(srcPath), vectorExt)
+}
+
+// VectorOutputName es el nombre con el que un vector aterriza en la salida: el
+// suyo, sin sufijo de variante. La página lo referencia por ese nombre.
+func VectorOutputName(srcPath string) string {
+	return filepath.Base(srcPath)
+}
+
+// copyVerbatim entrega el vector sin tocarlo. Variants se ignora a propósito:
+// no hay tres anchos que generar.
+func copyVerbatim(src ParsedAsset, outputDir string) ([]string, error) {
+	content, err := os.ReadFile(src.AbsPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read vector %s: %w", src.AbsPath, err)
+	}
+	name := VectorOutputName(src.AbsPath)
+	if err := os.WriteFile(filepath.Join(outputDir, name), content, 0644); err != nil {
+		return nil, fmt.Errorf("failed to write %s: %w", name, err)
+	}
+	return []string{name}, nil
 }

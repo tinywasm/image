@@ -17,6 +17,15 @@ func IsUpToDate(srcPath string, variants image.Variant, outputDir string) bool {
 		return false
 	}
 	srcMtime := srcStat.ModTime()
+
+	// Un vector no tiene variantes: su salida es un único archivo con el mismo
+	// nombre. Preguntar por sufijos S/M/L aquí lo daría por vigente siempre,
+	// porque ninguna variante estaría declarada y el bucle no miraría nada.
+	if IsVector(srcPath) {
+		outStat, err := os.Stat(filepath.Join(outputDir, VectorOutputName(srcPath)))
+		return err == nil && !srcMtime.After(outStat.ModTime())
+	}
+
 	variantInfos := []struct {
 		v image.Variant
 		s string
