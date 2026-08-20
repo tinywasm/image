@@ -1,14 +1,35 @@
 # tinywasm/image
 <img src="docs/img/badges.svg">
 
-Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de optimización WebP.
+Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de optimización WebP + compresión en cliente.
 
-## Dos capas
+## Tres capas
 
 1. **Builders** (`github.com/tinywasm/image`) — `Img`, `Picture`, `Source`, construcción de elementos HTML. Compila para WASM y backend. Sin etiquetas de construcción (build tags).
-2. **Pipeline** (`github.com/tinywasm/image/min`) — `Handler`, `Config`, procesamiento WebP. Solo para backend.
+2. **Pipeline** (`github.com/tinywasm/image/min`) — `Handler`, `Config`, procesamiento WebP. Solo para backend (`//go:build !wasm`).
+3. **Navegador** (`github.com/tinywasm/image/browser`) — `Compress`, `CompressToFit`, compresión y redimensionado en el cliente antes de subir. Solo para WASM (`//go:build wasm`).
 
 > El nombre `image` sombrea el paquete estándar de Go **a propósito**: el stdlib `image` es demasiado pesado para TinyGo. Internamente, el pipeline aliasea el stdlib como `stdimage`.
+
+## Compresión en el cliente (Frontend/WASM)
+```go
+import "github.com/tinywasm/image/browser"
+
+// En el handler del evento 'change' de un <input type="file">:
+file := input.Get("files").Index(0)
+
+// Comprimir a 1920px maxEdge, WebP, calidad 0.85
+res, err := browser.Compress(file, browser.Config{
+    MaxEdge: 1920,
+    Quality: 0.85,
+    Type:    "image/webp",
+})
+if err != nil {
+    // Manejar error (p.ej. browser.ErrUnsupported)
+}
+
+// res.Data contiene los []byte listos para subir por HTTP
+```
 
 ## Render (Frontend/WASM)
     import . "github.com/tinywasm/image"

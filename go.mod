@@ -10,4 +10,7 @@ require (
 	github.com/tinywasm/modfind v0.0.4
 )
 
-require golang.org/x/image v0.24.0 // indirect
+require (
+	github.com/tinywasm/await v0.1.0 // indirect
+	golang.org/x/image v0.24.0 // indirect
+)
