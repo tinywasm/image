@@ -106,18 +106,15 @@ func outputNames(asset ParsedAsset) []string {
 		return nil
 	}
 
-	variantInfos := []struct {
-		v image.Variant
-		s string
-	}{
-		{image.VariantS, "S"},
-		{image.VariantM, "M"},
-		{image.VariantL, "L"},
+	variantsList := []image.Variant{
+		image.VariantS,
+		image.VariantM,
+		image.VariantL,
 	}
 	var out []string
-	for _, vi := range variantInfos {
-		if asset.Variants&vi.v != 0 {
-			out = append(out, fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext))
+	for _, v := range variantsList {
+		if asset.Variants&v != 0 {
+			out = append(out, fmt.Sprintf("%s.%s%s", asset.BaseName, v.Suffix(), ext))
 		}
 	}
 	return out
@@ -130,19 +127,16 @@ func (h *Handler) cleanOrphans(allAssets []ParsedAsset) {
 	activeFiles := make(map[string]bool)
 	for _, asset := range allAssets {
 		if !IsVector(asset.AbsPath) && ExpectedExt(asset.AbsPath) == "" {
-			variantInfos := []struct {
-				v image.Variant
-				s string
-			}{
-				{image.VariantS, "S"},
-				{image.VariantM, "M"},
-				{image.VariantL, "L"},
+			variantsList := []image.Variant{
+				image.VariantS,
+				image.VariantM,
+				image.VariantL,
 			}
 			extensions := []string{".jpg", ".webp"}
-			for _, vi := range variantInfos {
-				if asset.Variants&vi.v != 0 {
+			for _, v := range variantsList {
+				if asset.Variants&v != 0 {
 					for _, ext := range extensions {
-						activeFiles[fmt.Sprintf("%s.%s%s", asset.BaseName, vi.s, ext)] = true
+						activeFiles[fmt.Sprintf("%s.%s%s", asset.BaseName, v.Suffix(), ext)] = true
 					}
 				}
 			}

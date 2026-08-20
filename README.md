@@ -34,8 +34,17 @@ if err != nil {
 ## Render (Frontend/WASM)
     import . "github.com/tinywasm/image"
 
-    func (c *Hero) Render() *dom.Element {
-        return Img("/img/hero.M.webp", "Hero").Lazy().Size(1024, 512).AsElement()
+    // Imagen responsiva con srcset y sizes (100vw por defecto):
+    func (c *Card) Render() *dom.Element {
+        return Responsive("/img/foto.jpg", "Fachada").
+            Sizes("(max-width: 600px) 100vw, 33vw").
+            Lazy().
+            AsElement()
+    }
+
+    // Imagen simple sin srcset:
+    func (c *Logo) Render() *dom.Element {
+        return Img("/img/logo.png", "Logo").Size(200, 50).AsElement()
     }
 
 ## Declaración para procesamiento (image.go, //go:build !wasm)

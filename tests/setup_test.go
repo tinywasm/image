@@ -102,43 +102,30 @@ func (e *TestEnv) createTinyImage(destRelPath string) {
 }
 
 func (e *TestEnv) assertJPGExists(name string, v image.Variant) {
-	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.jpg", name, variantName(v)))
+	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.jpg", name, v.Suffix()))
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		e.t.Errorf("expected JPG variant %s for %s to exist", variantName(v), name)
+		e.t.Errorf("expected JPG variant %s for %s to exist", v.Suffix(), name)
 	}
 }
 
 func (e *TestEnv) assertJPGNotExists(name string, v image.Variant) {
-	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.jpg", name, variantName(v)))
+	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.jpg", name, v.Suffix()))
 	if _, err := os.Stat(path); err == nil {
-		e.t.Errorf("expected JPG variant %s for %s NOT to exist", variantName(v), name)
+		e.t.Errorf("expected JPG variant %s for %s NOT to exist", v.Suffix(), name)
 	}
 }
 
 func (e *TestEnv) assertWebPExists(name string, v image.Variant) {
-	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, variantName(v)))
+	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, v.Suffix()))
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		e.t.Errorf("expected WebP variant %s for %s to exist", variantName(v), name)
+		e.t.Errorf("expected WebP variant %s for %s to exist", v.Suffix(), name)
 	}
 }
 
 func (e *TestEnv) assertWebPNotExists(name string, v image.Variant) {
-	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, variantName(v)))
+	path := filepath.Join(e.OutputDir, fmt.Sprintf("%s.%s.webp", name, v.Suffix()))
 	if _, err := os.Stat(path); err == nil {
-		e.t.Errorf("expected WebP variant %s for %s NOT to exist", variantName(v), name)
-	}
-}
-
-func variantName(v image.Variant) string {
-	switch v {
-	case image.VariantS:
-		return "S"
-	case image.VariantM:
-		return "M"
-	case image.VariantL:
-		return "L"
-	default:
-		return "unknown"
+		e.t.Errorf("expected WebP variant %s for %s NOT to exist", v.Suffix(), name)
 	}
 }
 

@@ -26,13 +26,10 @@ func IsUpToDate(srcPath string, variants image.Variant, outputDir string) bool {
 		return err == nil && !srcMtime.After(outStat.ModTime())
 	}
 
-	variantInfos := []struct {
-		v image.Variant
-		s string
-	}{
-		{image.VariantS, "S"},
-		{image.VariantM, "M"},
-		{image.VariantL, "L"},
+	variantsList := []image.Variant{
+		image.VariantS,
+		image.VariantM,
+		image.VariantL,
 	}
 	baseName := strings.TrimSuffix(filepath.Base(srcPath), filepath.Ext(srcPath))
 
@@ -44,11 +41,11 @@ func IsUpToDate(srcPath string, variants image.Variant, outputDir string) bool {
 		extensions = []string{ext}
 	}
 
-	for _, vi := range variantInfos {
-		if variants&vi.v != 0 {
+	for _, v := range variantsList {
+		if variants&v != 0 {
 			found := false
 			for _, ext := range extensions {
-				outPath := filepath.Join(outputDir, fmt.Sprintf("%s.%s%s", baseName, vi.s, ext))
+				outPath := filepath.Join(outputDir, fmt.Sprintf("%s.%s%s", baseName, v.Suffix(), ext))
 				outStat, err := os.Stat(outPath)
 				if err == nil {
 					found = true
