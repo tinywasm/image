@@ -34,6 +34,10 @@ if err != nil {
 ## Render (Frontend/WASM)
     import . "github.com/tinywasm/image"
 
+    // Variantes generadas: S=480px, M=1024px, L=1600px (calidad JPEG 62 por defecto).
+    // sizes importa: sin el, el navegador asume 100vw y baja de mas en cualquier
+    // imagen que no ocupe el ancho completo.
+
     // Imagen responsiva con srcset y sizes (100vw por defecto):
     func (c *Card) Render() *dom.Element {
         return Responsive("/img/foto.jpg", "Fachada").

@@ -64,7 +64,7 @@ func TestResponsive_Basic(t *testing.T) {
 	if !strings.Contains(got, "src='/img/foto.M.jpg'") {
 		t.Errorf("expected src='/img/foto.M.jpg', got %s", got)
 	}
-	expectedSrcset := "srcset='/img/foto.S.jpg 640w, /img/foto.M.jpg 1024w, /img/foto.L.jpg 1920w'"
+	expectedSrcset := "srcset='/img/foto.S.jpg 480w, /img/foto.M.jpg 1024w, /img/foto.L.jpg 1600w'"
 	if !strings.Contains(got, expectedSrcset) {
 		t.Errorf("expected %s, got %s", expectedSrcset, got)
 	}
@@ -90,7 +90,7 @@ func TestResponsive_DotsInDirectory(t *testing.T) {
 	if !strings.Contains(got, "src='/img/v1.2/foto.M.jpg'") {
 		t.Errorf("expected src='/img/v1.2/foto.M.jpg', got %s", got)
 	}
-	if !strings.Contains(got, "srcset='/img/v1.2/foto.S.jpg 640w, /img/v1.2/foto.M.jpg 1024w, /img/v1.2/foto.L.jpg 1920w'") {
+	if !strings.Contains(got, "srcset='/img/v1.2/foto.S.jpg 480w, /img/v1.2/foto.M.jpg 1024w, /img/v1.2/foto.L.jpg 1600w'") {
 		t.Errorf("expected srcset with v1.2, got %s", got)
 	}
 }

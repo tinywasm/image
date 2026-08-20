@@ -38,9 +38,6 @@ La convención de sufijos (`.S`, `.M`, `.L`) y anchos (`WidthS`, `WidthM`, `Widt
 
 ### La escalera de anchos: 480 / 1024 / 1600
 
-> STATUS (eliminar esta nota cuando la escalera esté implementada): el código
-> todavía genera 640 / 1024 / 1920 con calidad 75.
-
 El navegador no elige por el tamaño de la pantalla: calcula `ancho_de_layout_css × DPR` y toma el candidato más chico que lo cubra. Esa fórmula gobierna toda la escalera.
 
 | dispositivo | CSS px | DPR | pide | elige a `100vw` |

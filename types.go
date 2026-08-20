@@ -4,9 +4,9 @@ package image
 type Variant uint8
 
 const (
-	VariantS Variant = 1 << iota // 1 — 640px  mobile
-	VariantM                     // 2 — 1024px tablet
-	VariantL                     // 4 — 1920px desktop
+	VariantS Variant = 1 << iota // 1 — 480px  grillas y tarjetas
+	VariantM                     // 2 — 1024px telefono a pantalla completa, tablet
+	VariantL                     // 4 — 1600px escritorio
 )
 
 // AllVariants includes all responsive variants.
@@ -14,9 +14,9 @@ const AllVariants = VariantS | VariantM | VariantL
 
 // Widths for responsive variants in pixels.
 const (
-	WidthS = 640
+	WidthS = 480
 	WidthM = 1024
-	WidthL = 1920
+	WidthL = 1600
 )
 
 // Suffix es la marca que el pipeline intercala antes de la extension:

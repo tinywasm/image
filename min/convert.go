@@ -15,6 +15,25 @@ import (
 	"github.com/tinywasm/image"
 )
 
+// MsgSourceNarrowerThanVariant avisa que la fuente no alcanza el ancho de la
+// variante declarada. El archivo se escribe igual, pero Responsive() lo va a
+// declarar en el srcset con el ancho nominal de la variante, no con el real:
+// el navegador entonces la elige creyendo que recibe mas pixeles de los que hay.
+//
+// Es un defecto del contenido (una fuente demasiado chica), no del render, y
+// por eso se ataja aqui: el builder compila a WASM y no puede medir el archivo.
+const MsgSourceNarrowerThanVariant = "source narrower than variant width; srcset will overstate it"
+
+// DefaultQuality es la calidad JPEG cuando Config.Quality no la fija.
+//
+// Es 62 y no 75 porque con la escalera 480/1024/1600 ninguna variante se
+// muestra 1:1 en una pantalla moderna: siempre hay downscale (DPR >= 2) o un
+// leve upscale (un monitor de 1920 recibiendo la variante de 1600). Ese
+// remuestreo destruye los artefactos JPEG antes de que el ojo los alcance, y
+// la calidad es la palanca de peso mas grande que existe — mayor que cualquier
+// ajuste de ancho.
+const DefaultQuality = 62
+
 func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...any)) ([]string, error) {
 	if IsVector(src.AbsPath) {
 		return copyVerbatim(src, outputDir)
@@ -29,25 +48,21 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 
 	bounds := img.Bounds()
 	originalWidth := bounds.Dx()
-	variants := []struct {
-		v     image.Variant
-		width int
-	}{
-		{image.VariantS, 640},
-		{image.VariantM, 1024},
-		{image.VariantL, 1920},
-	}
+	variants := []image.Variant{image.VariantS, image.VariantM, image.VariantL}
 	var outputFiles []string
-	for _, vInfo := range variants {
-		if src.Variants&vInfo.v != 0 {
+	for _, v := range variants {
+		if src.Variants&v != 0 {
+			targetWidth := v.Width()
 			var processedImg stdimage.Image
-			if originalWidth <= vInfo.width {
-				log("image smaller than target, skipping resize", src.BaseName, vInfo.v)
+			if originalWidth <= targetWidth {
+				if originalWidth < targetWidth {
+					log(MsgSourceNarrowerThanVariant, src.BaseName, v.Suffix(), originalWidth, targetWidth)
+				}
 				processedImg = img
 			} else {
-				processedImg = imaging.Resize(img, vInfo.width, 0, imaging.Lanczos)
+				processedImg = imaging.Resize(img, targetWidth, 0, imaging.Lanczos)
 			}
-			outputName := fmt.Sprintf("%s.%s%s", src.BaseName, vInfo.v.Suffix(), ext)
+			outputName := fmt.Sprintf("%s.%s%s", src.BaseName, v.Suffix(), ext)
 			outputPath := filepath.Join(outputDir, outputName)
 			var err error
 			if opaque {
@@ -120,7 +135,7 @@ func writeJPEG(img stdimage.Image, path string, quality int) error {
 	}
 	defer f.Close()
 	if quality <= 0 {
-		quality = 75
+		quality = DefaultQuality
 	}
 	return jpeg.Encode(f, img, &jpeg.Options{Quality: quality})
 }
