@@ -2,8 +2,9 @@
 PLAN: "fix: fuente unica de anchos, escalera 480/1024/1600 y calidad por defecto 62"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 1959356094173927378
+PR: https://github.com/tinywasm/image/pull/9
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
