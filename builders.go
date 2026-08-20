@@ -30,7 +30,7 @@ func Img(src, alt string) *ImgElement {
 // emite:
 //
 //	<img src="/img/foto.M.jpg"
-//	     srcset="/img/foto.S.jpg 640w, /img/foto.M.jpg 1024w, /img/foto.L.jpg 1920w"
+//	     srcset="/img/foto.S.jpg 480w, /img/foto.M.jpg 1024w, /img/foto.L.jpg 1600w"
 //	     sizes="100vw" alt="Fachada">
 //
 // El src apunta a la variante M para que un navegador que ignore srcset reciba

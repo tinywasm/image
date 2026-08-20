@@ -46,14 +46,14 @@ func TestVariantSuffix(t *testing.T) {
 }
 
 func TestVariantWidth(t *testing.T) {
-	if image.VariantS.Width() != 640 {
-		t.Errorf("VariantS.Width() = %d, want 640", image.VariantS.Width())
+	if image.VariantS.Width() != 480 {
+		t.Errorf("VariantS.Width() = %d, want 480", image.VariantS.Width())
 	}
 	if image.VariantM.Width() != 1024 {
 		t.Errorf("VariantM.Width() = %d, want 1024", image.VariantM.Width())
 	}
-	if image.VariantL.Width() != 1920 {
-		t.Errorf("VariantL.Width() = %d, want 1920", image.VariantL.Width())
+	if image.VariantL.Width() != 1600 {
+		t.Errorf("VariantL.Width() = %d, want 1600", image.VariantL.Width())
 	}
 	if image.Variant(0).Width() != 0 {
 		t.Errorf("Variant(0).Width() = %d, want 0", image.Variant(0).Width())
