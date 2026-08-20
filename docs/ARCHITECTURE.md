@@ -1,15 +1,22 @@
 # Imagemin Architecture
 
-`image` is a specialized image processing library for Go SSR (Server-Side Rendering) modules within the `tinywasm` ecosystem. Its primary goal is to automate the generation of responsive WebP images from declarations in module source code.
+`image` is a specialized image processing library for Go SSR (Server-Side Rendering) modules within the `tinywasm` ecosystem. Its primary goal is to automate the generation of responsive WebP images from declarations in module source code and to compress client-side uploaded images before sending them over the network.
 
 ## Package Structure
 
-The package is split into two parts:
-1. **`github.com/tinywasm/image` (Root)**: Contains types and HTML builders. It has no build tags and is safe to import in WASM.
-2. **`github.com/tinywasm/image/min` (Subpackage)**: Contains the processing pipeline (Handler, Converter, Extractor). It is only imported by the backend.
+The package is split into three parts:
+
+| Layer | Package | Build | When Executed |
+|---|---|---|---|
+| **Builders** | `github.com/tinywasm/image` | Tagless | Render, both server & client |
+| **Pipeline** | `github.com/tinywasm/image/min` | `//go:build !wasm` | Build time, on server |
+| **Browser** | `github.com/tinywasm/image/browser` | `//go:build wasm` | Client-side pre-upload |
 
 - **`types.go`**: Contains core types like `Asset` and `Variant`.
 - **`builders.go`**: HTML builders like `Img()`, `Picture()`, and `Source()`.
+- **`browser/compress.go`**: Client-side `Compress` and `CompressToFit` utilizing browser `OffscreenCanvas`.
+- **`browser/js.go`**: Constant definitions for JS global/property names.
+- **`browser/errors.go`**: Sentinel errors like `ErrUnsupported`.
 - **`min/extract.go`**: Uses the `go/ast` and `go/parser` packages to analyze Go source code. It extracts the `RenderImages` function from `image.go` files.
 - **`min/convert.go`**: Handles image transformation using `imaging` and `nativewebp`.
 - **`min/loader.go`**: Orchestrates discovery via `go list`.
@@ -17,6 +24,11 @@ The package is split into two parts:
 - **`min/artifacts.go`**: Exposes processed images as in-memory `Artifact` values (`Handler.Artifacts()`) and resolves the default cache location (`DefaultCacheDir`).
 
 ## Core Concepts
+
+### Browser Image Compression (`OffscreenCanvas`)
+The client layer (`github.com/tinywasm/image/browser`) decompresses, resizes, and re-encodes user-selected files using the browser's native capabilities before uploading.
+
+Using `OffscreenCanvas` and `convertToBlob()` guarantees all asynchronous operations return `Promise` objects, seamlessly integrating with `github.com/tinywasm/await`. This avoids DOM manipulation or callback-based APIs (`canvas.toBlob`), keeping client-side operations fast and decoupled from document elements.
 
 ### Asset Declarations
 Instead of manually managing images, modules declare their requirements in a standard `image.go` file. By implementing `RenderImages() []image.Asset`, a module tells the system which images it needs and what responsive variants (Small, Medium, Large) should be generated.
