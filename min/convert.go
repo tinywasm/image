@@ -47,7 +47,7 @@ func ProcessImage(src ParsedAsset, outputDir string, quality int, log func(...an
 			} else {
 				processedImg = imaging.Resize(img, vInfo.width, 0, imaging.Lanczos)
 			}
-			outputName := fmt.Sprintf("%s.%s%s", src.BaseName, variantSuffix(vInfo.v), ext)
+			outputName := fmt.Sprintf("%s.%s%s", src.BaseName, vInfo.v.Suffix(), ext)
 			outputPath := filepath.Join(outputDir, outputName)
 			var err error
 			if opaque {
@@ -111,19 +111,6 @@ func isOpaque(img stdimage.Image) bool {
 		}
 	}
 	return true
-}
-
-func variantSuffix(v image.Variant) string {
-	switch v {
-	case image.VariantS:
-		return "S"
-	case image.VariantM:
-		return "M"
-	case image.VariantL:
-		return "L"
-	default:
-		return "unknown"
-	}
 }
 
 func writeJPEG(img stdimage.Image, path string, quality int) error {

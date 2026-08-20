@@ -12,8 +12,8 @@ The package is split into three parts:
 | **Pipeline** | `github.com/tinywasm/image/min` | `//go:build !wasm` | Build time, on server |
 | **Browser** | `github.com/tinywasm/image/browser` | `//go:build wasm` | Client-side pre-upload |
 
-- **`types.go`**: Contains core types like `Asset` and `Variant`.
-- **`builders.go`**: HTML builders like `Img()`, `Picture()`, and `Source()`.
+- **`types.go`**: Contains core types like `Asset` and `Variant`, as well as suffix conventions (`Variant.Suffix()`) and pixel widths (`Variant.Width()`).
+- **`builders.go`**: HTML builders like `Img()`, `Responsive()`, `Picture()`, and `Source()`.
 - **`browser/compress.go`**: Client-side `Compress` and `CompressToFit` utilizing browser `OffscreenCanvas`.
 - **`browser/js.go`**: Constant definitions for JS global/property names.
 - **`browser/errors.go`**: Sentinel errors like `ErrUnsupported`.
@@ -29,6 +29,12 @@ The package is split into three parts:
 The client layer (`github.com/tinywasm/image/browser`) decompresses, resizes, and re-encodes user-selected files using the browser's native capabilities before uploading.
 
 Using `OffscreenCanvas` and `convertToBlob()` guarantees all asynchronous operations return `Promise` objects, seamlessly integrating with `github.com/tinywasm/await`. This avoids DOM manipulation or callback-based APIs (`canvas.toBlob`), keeping client-side operations fast and decoupled from document elements.
+
+### Responsive Images (`<img srcset>`) vs `<picture>`
+
+Para **resolution switching** (servir la misma imagen en distintas resoluciones), el elemento HTML adecuado es `<img srcset sizes>`. Esto permite al navegador seleccionar la variante óptima considerando el ancho de pantalla, la densidad de píxeles (DPR) y las condiciones de red. `<picture>` se reserva para *art direction* (recortes o composiciones diferentes por tamaño de pantalla) o formatos alternativos.
+
+La convención de sufijos (`.S`, `.M`, `.L`) y anchos (`WidthS = 640`, `WidthM = 1024`, `WidthL = 1920`) reside en `types.go` en el paquete raíz sin build tags. Esta única definición compartida permite que tanto el pipeline de optimización en backend (`min/`) como los renderizadores de HTML en frontend (WASM) compartan la misma convención sin duplicar cadenas ni depender de código específico de backend.
 
 ### Asset Declarations
 Instead of manually managing images, modules declare their requirements in a standard `image.go` file. By implementing `RenderImages() []image.Asset`, a module tells the system which images it needs and what responsive variants (Small, Medium, Large) should be generated.
