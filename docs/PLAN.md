@@ -2,8 +2,9 @@
 PLAN: "feat: constructor de imagenes responsivas con srcset"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 8299687804136328601
+PR: https://github.com/tinywasm/image/pull/8
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
