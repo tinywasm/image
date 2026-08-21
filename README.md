@@ -3,11 +3,22 @@
 
 Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de optimización WebP + compresión en cliente.
 
-## Tres capas
+## Cuatro capas
 
 1. **Builders** (`github.com/tinywasm/image`) — `Img`, `Picture`, `Source`, construcción de elementos HTML. Compila para WASM y backend. Sin etiquetas de construcción (build tags).
 2. **Pipeline** (`github.com/tinywasm/image/min`) — `Handler`, `Config`, procesamiento WebP. Solo para backend (`//go:build !wasm`).
 3. **Navegador** (`github.com/tinywasm/image/browser`) — `Compress`, `CompressToFit`, compresión y redimensionado en el cliente antes de subir. Solo para WASM (`//go:build wasm`).
+4. **Favicon** (`github.com/tinywasm/image/favicon`) — `//go:build !wasm` — de un logo cuadrado al juego de iconos.
+
+## Favicon (Backend)
+```go
+import "github.com/tinywasm/image/favicon"
+
+files, _ := favicon.Derive(favicon.Source{Raster: pngBytes, SVG: svgBytes})
+for _, f := range files {
+    os.WriteFile(filepath.Join(outDir, f.Name), f.Content, 0644)
+}
+```
 
 > El nombre `image` sombrea el paquete estándar de Go **a propósito**: el stdlib `image` es demasiado pesado para TinyGo. Internamente, el pipeline aliasea el stdlib como `stdimage`.
 

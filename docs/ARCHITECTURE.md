@@ -4,19 +4,25 @@
 
 ## Package Structure
 
-The package is split into three parts:
+The package is split into four parts:
 
 | Layer | Package | Build | When Executed |
 |---|---|---|---|
 | **Builders** | `github.com/tinywasm/image` | Tagless | Render, both server & client |
 | **Pipeline** | `github.com/tinywasm/image/min` | `//go:build !wasm` | Build time, on server |
 | **Browser** | `github.com/tinywasm/image/browser` | `//go:build wasm` | Client-side pre-upload |
+| **Favicon** | `github.com/tinywasm/image/favicon` | `//go:build !wasm` | Build time, icon derivation |
+
+`favicon` valida y deriva, pero no sanea: un SVG de un tercero se limpia en `tinywasm/svg`, no en el redimensionador.
 
 - **`types.go`**: Contains core types like `Asset` and `Variant`, as well as suffix conventions (`Variant.Suffix()`) and pixel widths (`Variant.Width()`).
 - **`builders.go`**: HTML builders like `Img()`, `Responsive()`, `Picture()`, and `Source()`.
 - **`browser/compress.go`**: Client-side `Compress` and `CompressToFit` utilizing browser `OffscreenCanvas`.
 - **`browser/js.go`**: Constant definitions for JS global/property names.
 - **`browser/errors.go`**: Sentinel errors like `ErrUnsupported`.
+- **`favicon/favicon.go`**: `Derive` — de un logo cuadrado al juego de iconos (`icon-32.png`, `icon-192.png`, `apple-touch-icon.png`, `favicon.ico`, `favicon.svg`).
+- **`favicon/ico.go`**: Codificador ICO mínimo (22 bytes de cabecera + PNG de 32×32 embebido).
+- **`favicon/errors.go`**: `ErrNoRaster`, `ErrUndecodable`, `ErrNotSquare`, `ErrTooSmall` (valida y deriva, no sanea SVG).
 - **`min/extract.go`**: Uses the `go/ast` and `go/parser` packages to analyze Go source code. It extracts the `RenderImages` function from `image.go` files.
 - **`min/convert.go`**: Handles image transformation using `imaging` and `nativewebp`.
 - **`min/loader.go`**: Orchestrates discovery via `go list`.
