@@ -6,15 +6,15 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/image/min"
+	"webtyp.com/image"
+	"webtyp.com/image/min"
 )
 
 func TestExtractImagesLiteral(t *testing.T) {
 	env := newTestEnv(t)
 	env.writeImageGo(`
 package module
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS | image.VariantM, Alt: "Logo"},
@@ -44,7 +44,7 @@ func TestExtractImagesAllVariants(t *testing.T) {
 	env := newTestEnv(t)
 	env.writeImageGo(`
 package module
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{
 		{Path: "hero.jpg", Variants: image.AllVariants},
@@ -62,7 +62,7 @@ func TestExtractImagesAltEmpty(t *testing.T) {
 	env := newTestEnv(t)
 	env.writeImageGo(`
 package module
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{
 		{Path: "my-hero.jpg", Variants: image.VariantS},
@@ -107,7 +107,7 @@ func TestExtractAbsPathResolution(t *testing.T) {
 	env := newTestEnv(t)
 	env.writeImageGo(`
 package module
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS},
@@ -126,7 +126,7 @@ func TestExtractImagesLocalVar(t *testing.T) {
 	env := newTestEnv(t)
 	env.writeImageGo(`
 package module
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	assets := []image.Asset{
 		{Path: "img/logo.png", Variants: image.VariantS},

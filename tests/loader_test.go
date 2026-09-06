@@ -12,9 +12,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/image/min"
-	"github.com/tinywasm/modfind"
+	"webtyp.com/image"
+	"webtyp.com/image/min"
+	"webtyp.com/modfind"
 )
 
 func TestLoadImagesFromModule(t *testing.T) {

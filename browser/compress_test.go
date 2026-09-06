@@ -7,7 +7,7 @@ import (
 	"syscall/js"
 	"testing"
 
-	"github.com/tinywasm/image/browser"
+	"webtyp.com/image/browser"
 )
 
 func setupJSMock(t *testing.T) func() {

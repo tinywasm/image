@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/modfind"
+	"webtyp.com/image"
+	"webtyp.com/modfind"
 )
 
 func (h *Handler) moduleDirs() ([]string, error) {

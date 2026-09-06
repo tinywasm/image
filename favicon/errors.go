@@ -2,9 +2,9 @@
 
 package favicon
 
-import "github.com/tinywasm/fmt"
+import "webtyp.com/fmt"
 
-// Errores de validación de la fuente. Usan tinywasm/fmt para mantener
+// Errores de validación de la fuente. Usan webtyp/fmt para mantener
 // el binario sin dependencias pesadas.
 var (
 	ErrNoRaster    = fmt.Err("favicon: falta el raster")
@@ -15,7 +15,7 @@ var (
 
 // wrappedError une un mensaje exacto (el que ve el cliente) con el sentinel
 // que permite errors.Is. Implementa Unwrap() []error para compatibilidad con
-// Go 1.20+ y con el patrón de tinywasm/fmt.wrappedErr.
+// Go 1.20+ y con el patrón de webtyp/fmt.wrappedErr.
 type wrappedError struct {
 	msg      string
 	sentinel error

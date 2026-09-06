@@ -5,7 +5,7 @@ package image_test
 import (
 	"testing"
 
-	"github.com/tinywasm/image/min"
+	"webtyp.com/image/min"
 )
 
 func TestHandlerUnobservedFiles(t *testing.T) {

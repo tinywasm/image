@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/tinywasm/image/favicon"
+	"webtyp.com/image/favicon"
 )
 
 func rasterPNG(t *testing.T, w, h int) []byte {

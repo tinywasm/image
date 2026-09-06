@@ -5,7 +5,7 @@ package image_test
 import (
 	"testing"
 
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 func TestVariantBitmask(t *testing.T) {

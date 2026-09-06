@@ -3,7 +3,7 @@
 package browser
 
 import (
-	"github.com/tinywasm/fmt"
+	"webtyp.com/fmt"
 )
 
 // ErrUnsupported indica que el navegador no ofrece OffscreenCanvas y por

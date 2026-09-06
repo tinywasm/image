@@ -5,8 +5,8 @@ package min
 import (
 	"sync"
 
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/modfind"
+	"webtyp.com/image"
+	"webtyp.com/modfind"
 )
 
 type ParsedAsset struct {

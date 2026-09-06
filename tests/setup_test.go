@@ -12,9 +12,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/image/min"
-	"github.com/tinywasm/modfind"
+	"webtyp.com/image"
+	"webtyp.com/image/min"
+	"webtyp.com/modfind"
 )
 
 type TestEnv struct {
@@ -38,7 +38,7 @@ func newTestEnv(t *testing.T) *TestEnv {
 
 	f := modfind.New()
 	f.Seed(moduleDir, []modfind.Module{
-		{Dir: moduleDir, Path: "github.com/tinywasm/image/testmodule"},
+		{Dir: moduleDir, Path: "webtyp.com/image/testmodule"},
 	})
 	handler.SetFinder(f)
 
@@ -58,7 +58,7 @@ func (e *TestEnv) writeImageGo(content string) {
 }
 
 func (e *TestEnv) writeImageGoWithImages(assets []image.Asset) {
-	content := "//go:build !wasm\n\npackage module\n\nimport \"github.com/tinywasm/image\"\n\nfunc RenderImages() []image.Asset {\n\treturn []image.Asset{\n"
+	content := "//go:build !wasm\n\npackage module\n\nimport \"webtyp.com/image\"\n\nfunc RenderImages() []image.Asset {\n\treturn []image.Asset{\n"
 	for _, asset := range assets {
 		content += fmt.Sprintf("\t\t{Path: %q, Variants: image.Variant(%d), Alt: %q},\n", asset.Path, asset.Variants, asset.Alt)
 	}

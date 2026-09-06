@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 func TestReloadConcurrency(t *testing.T) {

@@ -22,7 +22,7 @@ type Artifact struct {
 
 // cacheNamespace es el subdirectorio del caché de usuario donde viven las
 // imágenes convertidas de todos los proyectos.
-const cacheNamespace = "tinywasm/images"
+const cacheNamespace = "webtyp/images"
 
 // imgDir es el prefijo bajo el que se sirve toda imagen procesada.
 const imgDir = "img"

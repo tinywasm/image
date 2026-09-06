@@ -13,7 +13,7 @@ REVIEWER: none
 **Requisito previo**, porque este entorno no lo trae instalado:
 
 ```bash
-go install github.com/tinywasm/devflow/cmd/gotest@latest
+go install webtyp.com/devflow/cmd/gotest@latest
 ```
 
 ## 1. El problema, con el caso real que lo destapó
@@ -86,7 +86,7 @@ func Derive(s Source) ([]File, error)
 
 ### 3.1 — Validación, en este orden y con estos errores
 
-`favicon/errors.go`, con `github.com/tinywasm/fmt`:
+`favicon/errors.go`, con `webtyp.com/fmt`:
 
 | Comprobación | Error |
 |---|---|
@@ -117,7 +117,7 @@ En este orden exacto:
 | `favicon.svg` | — | `icon` | *(vacío)* | `image/svg+xml` |
 
 - `favicon.svg` sale **sólo** si `Source.SVG` no está vacío, y se copia
-  **tal cual**: este paquete no sanea SVG. Lo hace `github.com/tinywasm/svg`, y
+  **tal cual**: este paquete no sanea SVG. Lo hace `webtyp.com/svg`, y
   el que sanea es quien recibe archivos de terceros, no quien los redimensiona.
 - `favicon.ico` no lleva `Rel` a propósito: **nadie lo enlaza**. Los navegadores
   viejos lo piden solos a la raíz del sitio; ese es todo su mecanismo.
@@ -183,7 +183,7 @@ revisar en un diff.
   ejemplo de cinco líneas.
 - [`docs/ARCHITECTURE.md`](ARCHITECTURE.md): la sección de estructura de
   paquetes menciona el nuevo, con la regla de que **valida y deriva, pero no
-  sanea**: un SVG de un tercero se limpia en `tinywasm/svg`.
+  sanea**: un SVG de un tercero se limpia en `webtyp/svg`.
 
 Ningún documento debe citar `docs/PLAN.md`: este archivo se borra al publicar.
 
@@ -206,7 +206,7 @@ Ningún documento debe citar `docs/PLAN.md`: este archivo se borra al publicar.
 2. **No toques `min/` ni `browser/`.** Son la tubería de imágenes del sitio y la
    compresión previa a la subida: otro problema, otras reglas.
 3. **No sanees el SVG aquí.** Se copia tal cual. Limpiar SVG de terceros es de
-   `tinywasm/svg`, y mezclarlo aquí pondría un parser XML dentro de un
+   `webtyp/svg`, y mezclarlo aquí pondría un parser XML dentro de un
    redimensionador.
 4. **No inventes formatos de salida.** Nada de WebP ni de PNG de 512: el juego
    es el de §3.2, ni uno más.

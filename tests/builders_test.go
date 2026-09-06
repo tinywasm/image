@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/tinywasm/image"
+	. "webtyp.com/image"
 )
 
 func TestImg_Basic(t *testing.T) {

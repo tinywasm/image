@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/disintegration/imaging"
-	"github.com/tinywasm/image"
-	"github.com/tinywasm/image/min"
-	"github.com/tinywasm/modfind"
+	"webtyp.com/image"
+	"webtyp.com/image/min"
+	"webtyp.com/modfind"
 )
 
 func TestConvertJPGToJPG(t *testing.T) {
@@ -122,7 +122,7 @@ func TestConvertAltDerivedFromFilename(t *testing.T) {
 	// We need writeImageGo for ExtractImages to work in this env
 	env.writeImageGo(`
 package m
-import "github.com/tinywasm/image"
+import "webtyp.com/image"
 func RenderImages() []image.Asset {
 	return []image.Asset{{Path: "img/my-hero.jpg", Variants: image.VariantS}}
 }

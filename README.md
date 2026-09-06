@@ -1,18 +1,18 @@
-# tinywasm/image
+# webtyp/image
 <img src="docs/img/badges.svg">
 
-Todo lo relacionado con imágenes para TinyWasm: builders HTML + pipeline de optimización WebP + compresión en cliente.
+Todo lo relacionado con imágenes para WebTyp: builders HTML + pipeline de optimización WebP + compresión en cliente.
 
 ## Cuatro capas
 
-1. **Builders** (`github.com/tinywasm/image`) — `Img`, `Picture`, `Source`, construcción de elementos HTML. Compila para WASM y backend. Sin etiquetas de construcción (build tags).
-2. **Pipeline** (`github.com/tinywasm/image/min`) — `Handler`, `Config`, procesamiento WebP. Solo para backend (`//go:build !wasm`).
-3. **Navegador** (`github.com/tinywasm/image/browser`) — `Compress`, `CompressToFit`, compresión y redimensionado en el cliente antes de subir. Solo para WASM (`//go:build wasm`).
-4. **Favicon** (`github.com/tinywasm/image/favicon`) — `//go:build !wasm` — de un logo cuadrado al juego de iconos.
+1. **Builders** (`webtyp.com/image`) — `Img`, `Picture`, `Source`, construcción de elementos HTML. Compila para WASM y backend. Sin etiquetas de construcción (build tags).
+2. **Pipeline** (`webtyp.com/image/min`) — `Handler`, `Config`, procesamiento WebP. Solo para backend (`//go:build !wasm`).
+3. **Navegador** (`webtyp.com/image/browser`) — `Compress`, `CompressToFit`, compresión y redimensionado en el cliente antes de subir. Solo para WASM (`//go:build wasm`).
+4. **Favicon** (`webtyp.com/image/favicon`) — `//go:build !wasm` — de un logo cuadrado al juego de iconos.
 
 ## Favicon (Backend)
 ```go
-import "github.com/tinywasm/image/favicon"
+import "webtyp.com/image/favicon"
 
 files, _ := favicon.Derive(favicon.Source{Raster: pngBytes, SVG: svgBytes})
 for _, f := range files {
@@ -24,7 +24,7 @@ for _, f := range files {
 
 ## Compresión en el cliente (Frontend/WASM)
 ```go
-import "github.com/tinywasm/image/browser"
+import "webtyp.com/image/browser"
 
 // En el handler del evento 'change' de un <input type="file">:
 file := input.Get("files").Index(0)
@@ -43,7 +43,7 @@ if err != nil {
 ```
 
 ## Render (Frontend/WASM)
-    import . "github.com/tinywasm/image"
+    import . "webtyp.com/image"
 
     // Variantes generadas: S=480px, M=1024px, L=1600px (calidad JPEG 62 por defecto).
     // sizes importa: sin el, el navegador asume 100vw y baja de mas en cualquier
@@ -64,7 +64,7 @@ if err != nil {
 
 ## Declaración para procesamiento (image.go, //go:build !wasm)
     package herosection
-    import "github.com/tinywasm/image"
+    import "webtyp.com/image"
 
     func RenderImages() []image.Asset {
         return []image.Asset{
@@ -74,14 +74,14 @@ if err != nil {
 > El nombre de archivo **debe** ser `image.go`. El pipeline lo detecta automáticamente.
 
 ## Pipeline (Backend)
-    import "github.com/tinywasm/image/min"
+    import "webtyp.com/image/min"
 
     handler := min.New(&min.Config{RootDir: ".", OutputDir: "web/public/img", Quality: 80})
     handler.LoadImages()
 
-> La detección de módulos se delega a [tinywasm/modfind](https://github.com/tinywasm/modfind).
+> La detección de módulos se delega a [webtyp/modfind](https://github.com/webtyp/modfind).
 
 ## Related Packages
-- [tinywasm/dom](https://github.com/tinywasm/dom) — Element type
-- [tinywasm/html](https://github.com/tinywasm/html) — HTML builders
-- [tinywasm/svg](https://github.com/tinywasm/svg) — SVG builders + sprite
+- [webtyp/dom](https://github.com/webtyp/dom) — Element type
+- [webtyp/html](https://github.com/webtyp/html) — HTML builders
+- [webtyp/svg](https://github.com/webtyp/svg) — SVG builders + sprite

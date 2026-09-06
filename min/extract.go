@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 func ExtractImages(moduleDir string) ([]ParsedAsset, error) {

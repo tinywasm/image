@@ -12,7 +12,7 @@ import (
 
 	"github.com/HugoSmits86/nativewebp"
 	"github.com/disintegration/imaging"
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 // MsgSourceNarrowerThanVariant avisa que la fuente no alcanza el ancho de la

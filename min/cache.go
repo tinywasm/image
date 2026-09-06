@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 func IsUpToDate(srcPath string, variants image.Variant, outputDir string) bool {

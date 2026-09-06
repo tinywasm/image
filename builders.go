@@ -1,8 +1,8 @@
 package image
 
 import (
-	"github.com/tinywasm/dom"
-	"github.com/tinywasm/fmt"
+	"webtyp.com/dom"
+	"webtyp.com/fmt"
 )
 
 // DefaultSizes is the default sizes attribute value for responsive images.

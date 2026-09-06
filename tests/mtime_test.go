@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/tinywasm/image"
+	"webtyp.com/image"
 )
 
 func TestMtimeSkipsUnchanged(t *testing.T) {
